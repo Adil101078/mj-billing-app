@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm:*)",
+      "Bash(npm install)",
+      "Bash(npm run build:*)",
+      "Bash(npm install:*)",
+      "Bash(\"d:/MJ_BILLING_APP/MJInvoiceManager/FRONTEND_ANALYSIS.md\")",
+      "Bash(\"d:/MJ_BILLING_APP/MJInvoiceManager/COMPREHENSIVE_FRONTEND_REPORT.txt\")",
+      "Bash(python3:*)",
+      "Bash(awk:*)",
+      "Bash(cat:*)",
+      "Bash(tree:*)",
+      "Bash(curl:*)",
+      "Bash(netstat:*)",
+      "Bash(timeout:*)",
+      "Bash(npm run dev)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
