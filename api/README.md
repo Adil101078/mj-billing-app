@@ -31,7 +31,7 @@ Start the API server in development mode:
 npm run api:dev
 ```
 
-The API will be available at: `http://localhost:3000`
+The API will be available at: `http://localhost:3004`
 
 ## API Endpoints
 
@@ -115,7 +115,7 @@ The API will be available at: `http://localhost:3000`
 ### Create Customer
 
 ```bash
-curl -X POST http://localhost:3000/api/customers \
+curl -X POST http://localhost:3004/api/customers \
   -H "Content-Type: application/json" \
   -d '{
     "name": "John Doe",
@@ -134,7 +134,7 @@ curl -X POST http://localhost:3000/api/customers \
 ### Create Invoice
 
 ```bash
-curl -X POST http://localhost:3000/api/invoices \
+curl -X POST http://localhost:3004/api/invoices \
   -H "Content-Type: application/json" \
   -d '{
     "customerId": "CUSTOMER_ID_HERE",

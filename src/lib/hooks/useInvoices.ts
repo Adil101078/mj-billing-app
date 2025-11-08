@@ -78,6 +78,20 @@ export function useUpdateInvoiceStatus() {
   });
 }
 
+export function useUpdateCashReceived() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, cashReceived }: { id: string; cashReceived: number }) =>
+      invoiceAPI.updateCashReceived(id, cashReceived),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['invoice'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+  });
+}
+
 export function useDeleteInvoice() {
   const queryClient = useQueryClient();
 

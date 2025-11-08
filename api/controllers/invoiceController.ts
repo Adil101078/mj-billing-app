@@ -345,6 +345,50 @@ export const updateInvoiceStatus = async (req: Request, res: Response) => {
   }
 };
 
+// Update cash received amount
+export const updateCashReceived = async (req: Request, res: Response) => {
+  try {
+    const { cashReceived } = req.body;
+
+    if (cashReceived === undefined || cashReceived === null) {
+      return res.status(400).json({ message: "Cash received amount is required" });
+    }
+
+    const invoice = await Invoice.findById(req.params.id);
+
+    if (!invoice) {
+      return res.status(404).json({ message: "Invoice not found" });
+    }
+
+    // Add to existing cash received (incremental)
+    const currentCashReceived = invoice.cashReceived || 0;
+    const additionalAmount = Number(cashReceived);
+    invoice.cashReceived = currentCashReceived + additionalAmount;
+
+    // Recalculate balance
+    invoice.balanceAmount = invoice.total - invoice.cashReceived;
+
+    // Auto-update status based on balance
+    if (invoice.balanceAmount <= 0) {
+      invoice.status = "paid";
+      invoice.paidAt = new Date();
+    } else if (invoice.balanceAmount > 0 && invoice.status === "paid") {
+      invoice.status = "unpaid";
+    }
+
+    await invoice.save();
+
+    res.json({
+      message: "Cash received updated successfully",
+      invoice,
+      additionalAmount,
+      totalCashReceived: invoice.cashReceived,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error updating cash received", error });
+  }
+};
+
 // Delete invoice
 export const deleteInvoice = async (req: Request, res: Response) => {
   try {
@@ -395,6 +439,32 @@ export const getDashboardStats = async (req: Request, res: Response) => {
 
     const totalPending = pendingAmount.length > 0 ? pendingAmount[0].total : 0;
 
+    // Total cash received across all invoices
+    const cashReceivedData = await Invoice.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalCashReceived: { $sum: "$cashReceived" },
+        },
+      },
+    ]);
+
+    const totalCashReceived =
+      cashReceivedData.length > 0 ? cashReceivedData[0].totalCashReceived : 0;
+
+    // Total balance amount (outstanding)
+    const balanceData = await Invoice.aggregate([
+      { $match: { status: { $in: ["unpaid", "overdue"] } } },
+      {
+        $group: {
+          _id: null,
+          totalBalance: { $sum: "$balanceAmount" },
+        },
+      },
+    ]);
+
+    const totalBalance = balanceData.length > 0 ? balanceData[0].totalBalance : 0;
+
     // Recent invoices
     const recentInvoices = await Invoice.find()
       .sort({ createdAt: -1 })
@@ -435,6 +505,8 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         overdueInvoices,
         totalRevenue,
         totalPending,
+        totalCashReceived,
+        totalBalance,
       },
       recentInvoices,
       monthlyRevenue,

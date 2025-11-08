@@ -6,6 +6,7 @@ import {
   createInvoice,
   updateInvoice,
   updateInvoiceStatus,
+  updateCashReceived,
   deleteInvoice,
   getDashboardStats,
 } from '../controllers/invoiceController';
@@ -19,6 +20,7 @@ router.get('/number/:invoiceNumber', getInvoiceByNumber);
 router.post('/', createInvoice);
 router.put('/:id', updateInvoice);
 router.patch('/:id/status', updateInvoiceStatus);
+router.patch('/:id/cash-received', updateCashReceived);
 router.delete('/:id', deleteInvoice);
 
 export default router;

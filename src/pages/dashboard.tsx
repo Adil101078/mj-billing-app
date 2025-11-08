@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DollarSign, FileText, Users, TrendingUp, Plus } from "lucide-react";
+import { DollarSign, FileText, Users, TrendingUp, Plus, Wallet, AlertCircle } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -65,7 +65,7 @@ export default function Dashboard() {
         </Button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <Card data-testid="card-today-sales">
           <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Today's Sales</CardTitle>
@@ -121,24 +121,46 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card data-testid="card-unpaid-amount">
+        <Card data-testid="card-cash-received">
           <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Pending Amount
+              Cash Received
             </CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div
-              className="text-2xl font-bold"
-              data-testid="text-unpaid-amount"
+              className="text-2xl font-bold text-green-600"
+              data-testid="text-cash-received"
             >
               {isLoading
                 ? "..."
-                : formatCurrency(dashboardData?.overview?.totalPending || 0)}
+                : formatCurrency(dashboardData?.overview?.totalCashReceived || 0)}
             </div>
             <p className="text-xs text-muted-foreground">
-              Unpaid invoices total
+              Total cash collected
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-total-balance">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Outstanding Balance
+            </CardTitle>
+            <AlertCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div
+              className="text-2xl font-bold text-destructive"
+              data-testid="text-total-balance"
+            >
+              {isLoading
+                ? "..."
+                : formatCurrency(dashboardData?.overview?.totalBalance || 0)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Pending payment amount
             </p>
           </CardContent>
         </Card>

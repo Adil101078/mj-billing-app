@@ -1,0 +1,43 @@
+{
+  "name": "mj-billing-api",
+  "version": "1.0.0",
+  "description": "MJ Jewellers Invoice Management API",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "nodemon --watch . --exec tsx index.ts",
+    "start": "tsx scripts/seedAdmin.ts && tsx index.ts",
+    "build": "tsc",
+    "start:prod": "node ../build/api/index.js",
+    "seed:admin": "tsx scripts/seedAdmin.ts",
+    "pm2:start": "pm2 start ecosystem.config.cjs",
+    "pm2:stop": "pm2 stop MJ-BILLING-API",
+    "pm2:restart": "pm2 restart MJ-BILLING-API",
+    "pm2:delete": "pm2 delete MJ-BILLING-API",
+    "pm2:logs": "pm2 logs MJ-BILLING-API",
+    "pm2:status": "pm2 status MJ-BILLING-API"
+  },
+  "keywords": ["invoice", "billing", "api"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.19.2"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.5",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "20.16.11",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.6",
+    "typescript": "5.6.3"
+  }
+}

@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Admin {
@@ -35,7 +41,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3004/api";
 
   // Check if user is authenticated on mount
   useEffect(() => {

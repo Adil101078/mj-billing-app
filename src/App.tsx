@@ -1,4 +1,4 @@
-import { lazy } from "react";
+import { lazy, Suspense } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -12,6 +12,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 import { TableSkeleton } from "@/components/skeletons/TableSkeleton";
 import { FormSkeleton } from "@/components/skeletons/FormSkeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Lazy load pages
 const Login = lazy(() => import("@/pages/login"));
@@ -25,7 +26,22 @@ function Router() {
 
   return (
     <Switch>
-      <Route path="/login" component={Login} />
+      <Route path="/login">
+        {() => (
+          <Suspense
+            fallback={
+              <div className="min-h-screen w-full flex items-center justify-center">
+                <div className="text-center space-y-4">
+                  <Skeleton className="h-12 w-12 rounded-full mx-auto" />
+                  <Skeleton className="h-4 w-32 mx-auto" />
+                </div>
+              </div>
+            }
+          >
+            <Login />
+          </Suspense>
+        )}
+      </Route>
       <Route path="/">
         {() => (
           <ProtectedRoute fallback={<DashboardSkeleton />}>

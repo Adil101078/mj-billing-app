@@ -328,7 +328,7 @@ export default function CreateInvoice() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-6">
       <div>
         <h1 className="font-serif text-3xl font-bold">Create Invoice</h1>
         <p className="text-muted-foreground">
@@ -336,112 +336,108 @@ export default function CreateInvoice() {
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Invoice Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="customer">Customer *</Label>
-                  <div className="flex gap-2">
-                    <Select
-                      value={selectedCustomerId}
-                      onValueChange={setSelectedCustomerId}
-                    >
-                      <SelectTrigger
-                        id="customer"
-                        data-testid="select-customer"
-                      >
-                        <SelectValue placeholder="Select customer" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {customers.map((customer: any) => (
-                          <SelectItem key={customer._id} value={customer._id}>
-                            {customer.name} - {customer.phone}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setShowAddCustomer(true)}
-                      title="Add new customer"
-                    >
-                      <UserPlus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="date">Invoice Date</Label>
-                  <DatePicker
-                    date={invoiceDate}
-                    onDateChange={(date) => setInvoiceDate(date || new Date())}
-                    placeholder="Select invoice date"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
-              <CardTitle>Items</CardTitle>
-              <Button onClick={addItem} size="sm" data-testid="button-add-item">
-                <Plus className="h-4 w-4 mr-1" />
-                Add Item
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {items.map((item, index) => (
-                <div
-                  key={item.id}
-                  className="border border-border rounded-md p-4 space-y-4"
-                  data-testid={`item-row-${index}`}
+      <Card>
+        <CardHeader>
+          <CardTitle>Invoice Details</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="customer">Customer *</Label>
+              <div className="flex gap-2">
+                <Select
+                  value={selectedCustomerId}
+                  onValueChange={setSelectedCustomerId}
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <h4 className="text-sm font-medium">Item {index + 1}</h4>
-                    {items.length > 1 && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeItem(item.id)}
-                        data-testid={`button-remove-item-${index}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
+                  <SelectTrigger
+                    id="customer"
+                    data-testid="select-customer"
+                  >
+                    <SelectValue placeholder="Select customer" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {customers.map((customer: any) => (
+                      <SelectItem key={customer._id} value={customer._id}>
+                        {customer.name} - {customer.phone}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setShowAddCustomer(true)}
+                  title="Add new customer"
+                >
+                  <UserPlus className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
 
-                  <div className="grid gap-4 sm:grid-cols-3">
-                    <div className="space-y-2 sm:col-span-3">
-                      <Label>Item Description *</Label>
+            <div className="space-y-2">
+              <Label htmlFor="date">Invoice Date</Label>
+              <DatePicker
+                date={invoiceDate}
+                onDateChange={(date) => setInvoiceDate(date || new Date())}
+                placeholder="Select invoice date"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
+          <CardTitle>Items</CardTitle>
+          <Button onClick={addItem} size="sm" data-testid="button-add-item">
+            <Plus className="h-4 w-4 mr-1" />
+            Add Item
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {/* Desktop Table View */}
+          <div className="hidden lg:block overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="text-left p-2 text-xs font-semibold w-8">#</th>
+                  <th className="text-left p-2 text-xs font-semibold min-w-[200px]">Description *</th>
+                  <th className="text-left p-2 text-xs font-semibold min-w-[130px]">Type *</th>
+                  <th className="text-left p-2 text-xs font-semibold w-24">HSN</th>
+                  <th className="text-right p-2 text-xs font-semibold w-20">Pcs</th>
+                  <th className="text-right p-2 text-xs font-semibold w-28">G.Wt(g) *</th>
+                  <th className="text-right p-2 text-xs font-semibold w-28">Less(g)</th>
+                  <th className="text-right p-2 text-xs font-semibold w-28">Net(g)</th>
+                  <th className="text-right p-2 text-xs font-semibold w-32">Rate/10g</th>
+                  <th className="text-right p-2 text-xs font-semibold w-28">Lab/g</th>
+                  <th className="text-right p-2 text-xs font-semibold w-32">Amount</th>
+                  <th className="text-center p-2 text-xs font-semibold w-16"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item, index) => (
+                  <tr key={item.id} className="border-b border-border hover:bg-muted/30" data-testid={`item-row-${index}`}>
+                    <td className="p-2 text-sm font-medium">{index + 1}</td>
+                    <td className="p-2">
                       <Input
                         value={item.description}
                         onChange={(e) =>
                           updateItem(item.id, "description", e.target.value)
                         }
-                        placeholder="e.g., KHILI FANCY HM 18K, Gold Ring"
+                        placeholder="Item description"
+                        className="h-8 text-sm"
                         data-testid={`input-item-description-${index}`}
                       />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Item Type *</Label>
+                    </td>
+                    <td className="p-2">
                       <Select
                         value={item.itemType}
                         onValueChange={(value) =>
                           updateItem(item.id, "itemType", value)
                         }
                       >
-                        <SelectTrigger
-                          data-testid={`select-item-type-${index}`}
-                        >
-                          <SelectValue placeholder="Select type" />
+                        <SelectTrigger className="h-8 text-sm" data-testid={`select-item-type-${index}`}>
+                          <SelectValue placeholder="Type" />
                         </SelectTrigger>
                         <SelectContent>
                           {productTypes.map((type: any) => (
@@ -451,297 +447,390 @@ export default function CreateInvoice() {
                           ))}
                         </SelectContent>
                       </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>HSN Code</Label>
+                    </td>
+                    <td className="p-2">
                       <Input
                         value={item.hsnCode}
                         onChange={(e) =>
                           updateItem(item.id, "hsnCode", e.target.value)
                         }
-                        placeholder="711311"
+                        className="h-8 text-sm"
                         data-testid={`input-item-hsn-${index}`}
                       />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Pieces</Label>
+                    </td>
+                    <td className="p-2">
                       <Input
                         type="number"
                         min="1"
                         value={item.pcs || ""}
                         onChange={(e) =>
-                          updateItem(
-                            item.id,
-                            "pcs",
-                            parseInt(e.target.value) || 1
-                          )
+                          updateItem(item.id, "pcs", parseInt(e.target.value) || 1)
                         }
+                        className="h-8 text-sm text-right"
                         data-testid={`input-item-pcs-${index}`}
                       />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Gross Weight (g) *</Label>
+                    </td>
+                    <td className="p-2">
                       <Input
                         type="number"
                         step="0.001"
                         value={item.grossWeight || ""}
                         onChange={(e) =>
-                          updateItem(
-                            item.id,
-                            "grossWeight",
-                            parseFloat(e.target.value) || 0
-                          )
+                          updateItem(item.id, "grossWeight", parseFloat(e.target.value) || 0)
                         }
+                        className="h-8 text-sm text-right"
                         data-testid={`input-item-gross-weight-${index}`}
                       />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Less Weight (g)</Label>
+                    </td>
+                    <td className="p-2">
                       <Input
                         type="number"
                         step="0.001"
                         value={item.lessWeight || ""}
                         onChange={(e) =>
-                          updateItem(
-                            item.id,
-                            "lessWeight",
-                            parseFloat(e.target.value) || 0
-                          )
+                          updateItem(item.id, "lessWeight", parseFloat(e.target.value) || 0)
                         }
-                        placeholder="Stone, etc."
+                        className="h-8 text-sm text-right"
                         data-testid={`input-item-less-weight-${index}`}
                       />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Net Weight (g)</Label>
+                    </td>
+                    <td className="p-2">
                       <Input
                         type="number"
                         step="0.001"
                         value={item.netWeight.toFixed(3)}
                         readOnly
-                        className="bg-muted"
+                        className="h-8 text-sm text-right bg-muted"
                         data-testid={`input-item-net-weight-${index}`}
                       />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Rate per 10gm (₹)</Label>
+                    </td>
+                    <td className="p-2">
                       <Input
                         type="number"
                         value={item.ratePerTenGram || ""}
                         onChange={(e) =>
-                          updateItem(
-                            item.id,
-                            "ratePerTenGram",
-                            parseFloat(e.target.value) || 0
-                          )
+                          updateItem(item.id, "ratePerTenGram", parseFloat(e.target.value) || 0)
                         }
+                        className="h-8 text-sm text-right"
                         data-testid={`input-item-rate-${index}`}
                       />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Metal Amount (₹)</Label>
-                      <Input
-                        type="number"
-                        value={item.metalAmount.toFixed(2)}
-                        readOnly
-                        className="bg-muted"
-                        data-testid={`input-item-metal-amount-${index}`}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Labour/gm (₹)</Label>
+                    </td>
+                    <td className="p-2">
                       <Input
                         type="number"
                         step="0.01"
                         value={item.labourChargeRate || ""}
                         onChange={(e) =>
-                          updateItem(
-                            item.id,
-                            "labourChargeRate",
-                            parseFloat(e.target.value) || 0
-                          )
+                          updateItem(item.id, "labourChargeRate", parseFloat(e.target.value) || 0)
                         }
+                        className="h-8 text-sm text-right"
                         data-testid={`input-item-labour-rate-${index}`}
                       />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Labour Amount (₹)</Label>
-                      <Input
-                        type="number"
-                        value={item.labourChargeAmount.toFixed(2)}
-                        readOnly
-                        className="bg-muted"
-                        data-testid={`input-item-labour-amount-${index}`}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="border-t border-border pt-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Item Total:</span>
-                      <span
-                        className="text-lg font-bold"
-                        data-testid={`text-item-amount-${index}`}
-                      >
+                    </td>
+                    <td className="p-2">
+                      <div className="text-sm font-bold text-right" data-testid={`text-item-amount-${index}`}>
                         {formatCurrency(item.amount)}
-                      </span>
-                    </div>
+                      </div>
+                    </td>
+                    <td className="p-2 text-center">
+                      {items.length > 1 && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeItem(item.id)}
+                          className="h-8 w-8"
+                          data-testid={`button-remove-item-${index}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="lg:hidden space-y-4">
+            {items.map((item, index) => (
+              <div
+                key={item.id}
+                className="border border-border rounded-md p-4 space-y-3"
+                data-testid={`item-row-${index}`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <h4 className="text-sm font-medium">Item {index + 1}</h4>
+                  {items.length > 1 && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeItem(item.id)}
+                      data-testid={`button-remove-item-${index}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+
+                <div className="grid gap-3 grid-cols-2">
+                  <div className="col-span-2 space-y-1">
+                    <Label className="text-xs">Description *</Label>
+                    <Input
+                      value={item.description}
+                      onChange={(e) =>
+                        updateItem(item.id, "description", e.target.value)
+                      }
+                      placeholder="Item description"
+                      className="h-9"
+                      data-testid={`input-item-description-${index}`}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-xs">Type *</Label>
+                    <Select
+                      value={item.itemType}
+                      onValueChange={(value) =>
+                        updateItem(item.id, "itemType", value)
+                      }
+                    >
+                      <SelectTrigger className="h-9" data-testid={`select-item-type-${index}`}>
+                        <SelectValue placeholder="Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {productTypes.map((type: any) => (
+                          <SelectItem key={type.name} value={type.name}>
+                            {type.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-xs">HSN</Label>
+                    <Input
+                      value={item.hsnCode}
+                      onChange={(e) =>
+                        updateItem(item.id, "hsnCode", e.target.value)
+                      }
+                      className="h-9"
+                      data-testid={`input-item-hsn-${index}`}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-xs">Pieces</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={item.pcs || ""}
+                      onChange={(e) =>
+                        updateItem(item.id, "pcs", parseInt(e.target.value) || 1)
+                      }
+                      className="h-9"
+                      data-testid={`input-item-pcs-${index}`}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-xs">Gross Wt (g) *</Label>
+                    <Input
+                      type="number"
+                      step="0.001"
+                      value={item.grossWeight || ""}
+                      onChange={(e) =>
+                        updateItem(item.id, "grossWeight", parseFloat(e.target.value) || 0)
+                      }
+                      className="h-9"
+                      data-testid={`input-item-gross-weight-${index}`}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-xs">Less (g)</Label>
+                    <Input
+                      type="number"
+                      step="0.001"
+                      value={item.lessWeight || ""}
+                      onChange={(e) =>
+                        updateItem(item.id, "lessWeight", parseFloat(e.target.value) || 0)
+                      }
+                      className="h-9"
+                      data-testid={`input-item-less-weight-${index}`}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-xs">Net Wt (g)</Label>
+                    <Input
+                      type="number"
+                      step="0.001"
+                      value={item.netWeight.toFixed(3)}
+                      readOnly
+                      className="h-9 bg-muted"
+                      data-testid={`input-item-net-weight-${index}`}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-xs">Rate/10g</Label>
+                    <Input
+                      type="number"
+                      value={item.ratePerTenGram || ""}
+                      onChange={(e) =>
+                        updateItem(item.id, "ratePerTenGram", parseFloat(e.target.value) || 0)
+                      }
+                      className="h-9"
+                      data-testid={`input-item-rate-${index}`}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-xs">Labour/g</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={item.labourChargeRate || ""}
+                      onChange={(e) =>
+                        updateItem(item.id, "labourChargeRate", parseFloat(e.target.value) || 0)
+                      }
+                      className="h-9"
+                      data-testid={`input-item-labour-rate-${index}`}
+                    />
+                  </div>
+
+                  <div className="col-span-2 border-t pt-2 flex justify-between items-center">
+                    <span className="text-sm font-medium">Item Total:</span>
+                    <span className="text-lg font-bold" data-testid={`text-item-amount-${index}`}>
+                      {formatCurrency(item.amount)}
+                    </span>
                   </div>
                 </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-        <div>
-          <Card className="sticky top-4">
-            <CardHeader>
-              <CardTitle>Invoice Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
+      {/* Invoice Summary at Bottom */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Invoice Summary</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Left Column - Tax and Additional Charges */}
+            <div className="space-y-3">
+              <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    Subtotal (Gross)
-                  </span>
-                  <span data-testid="text-subtotal">
-                    {formatCurrency(totals.subtotal)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    CGST ({totals.cgstRate}%)
-                  </span>
-                  <span data-testid="text-cgst">
-                    {formatCurrency(totals.cgst)}
-                  </span>
+                  <span className="text-muted-foreground">Subtotal (Gross)</span>
+                  <span className="font-medium" data-testid="text-subtotal">{formatCurrency(totals.subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    SGST ({totals.sgstRate}%)
-                  </span>
-                  <span data-testid="text-sgst">
-                    {formatCurrency(totals.sgst)}
-                  </span>
+                  <span className="text-muted-foreground">CGST ({totals.cgstRate}%)</span>
+                  <span className="font-medium" data-testid="text-cgst">{formatCurrency(totals.cgst)}</span>
                 </div>
-
-                <div className="space-y-2 pt-2 border-t">
-                  <Label htmlFor="discount" className="text-xs">
-                    Discount (₹)
-                  </Label>
-                  <Input
-                    id="discount"
-                    type="number"
-                    step="0.01"
-                    value={discount || ""}
-                    onChange={(e) =>
-                      setDiscount(parseFloat(e.target.value) || 0)
-                    }
-                    placeholder="0.00"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="old-gold-weight" className="text-xs">
-                    Old Gold Weight (g)
-                  </Label>
-                  <Input
-                    id="old-gold-weight"
-                    type="number"
-                    step="0.001"
-                    value={oldGoldWeight || ""}
-                    onChange={(e) =>
-                      setOldGoldWeight(parseFloat(e.target.value) || 0)
-                    }
-                    placeholder="0.000"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="old-gold-amount" className="text-xs">
-                    Old Gold Amount (₹)
-                  </Label>
-                  <Input
-                    id="old-gold-amount"
-                    type="number"
-                    step="0.01"
-                    value={oldGoldAmount || ""}
-                    onChange={(e) =>
-                      setOldGoldAmount(parseFloat(e.target.value) || 0)
-                    }
-                    placeholder="0.00"
-                  />
-                </div>
-
-                {totals.roundOff !== 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Round Off</span>
-                    <span>{formatCurrency(totals.roundOff)}</span>
-                  </div>
-                )}
-
-                <div className="border-t border-border pt-2 flex justify-between font-bold">
-                  <span>Net Amount</span>
-                  <span
-                    className="text-xl text-primary"
-                    data-testid="text-total"
-                  >
-                    {formatCurrency(totals.total)}
-                  </span>
-                </div>
-
-                <div className="space-y-2 pt-2 border-t">
-                  <Label htmlFor="cash-received" className="text-xs">
-                    Cash Received (₹)
-                  </Label>
-                  <Input
-                    id="cash-received"
-                    type="number"
-                    step="0.01"
-                    value={cashReceived || ""}
-                    onChange={(e) =>
-                      setCashReceived(parseFloat(e.target.value) || 0)
-                    }
-                    placeholder="0.00"
-                  />
-                </div>
-
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Balance</span>
-                  <span
-                    className={
-                      totals.balance > 0
-                        ? "text-destructive font-bold"
-                        : "text-green-600 font-bold"
-                    }
-                  >
-                    {formatCurrency(totals.balance)}
-                  </span>
+                  <span className="text-muted-foreground">SGST ({totals.sgstRate}%)</span>
+                  <span className="font-medium" data-testid="text-sgst">{formatCurrency(totals.sgst)}</span>
                 </div>
+              </div>
+
+              <div className="space-y-2 pt-2 border-t">
+                <Label htmlFor="discount" className="text-sm">Discount (₹)</Label>
+                <Input
+                  id="discount"
+                  type="number"
+                  step="0.01"
+                  value={discount || ""}
+                  onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
+                  placeholder="0.00"
+                  className="h-9"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="old-gold-weight" className="text-sm">Old Gold Weight (g)</Label>
+                <Input
+                  id="old-gold-weight"
+                  type="number"
+                  step="0.001"
+                  value={oldGoldWeight || ""}
+                  onChange={(e) => setOldGoldWeight(parseFloat(e.target.value) || 0)}
+                  placeholder="0.000"
+                  className="h-9"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="old-gold-amount" className="text-sm">Old Gold Amount (₹)</Label>
+                <Input
+                  id="old-gold-amount"
+                  type="number"
+                  step="0.01"
+                  value={oldGoldAmount || ""}
+                  onChange={(e) => setOldGoldAmount(parseFloat(e.target.value) || 0)}
+                  placeholder="0.00"
+                  className="h-9"
+                />
+              </div>
+            </div>
+
+            {/* Right Column - Payment Summary */}
+            <div className="space-y-3">
+              {totals.roundOff !== 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Round Off</span>
+                  <span className="font-medium">{formatCurrency(totals.roundOff)}</span>
+                </div>
+              )}
+
+              <div className="border-t border-border pt-3 flex justify-between items-center">
+                <span className="text-lg font-bold">Net Amount</span>
+                <span className="text-2xl font-bold text-primary" data-testid="text-total">
+                  {formatCurrency(totals.total)}
+                </span>
+              </div>
+
+              <div className="space-y-2 pt-2 border-t">
+                <Label htmlFor="cash-received" className="text-sm">Cash Received (₹)</Label>
+                <Input
+                  id="cash-received"
+                  type="number"
+                  step="0.01"
+                  value={cashReceived || ""}
+                  onChange={(e) => setCashReceived(parseFloat(e.target.value) || 0)}
+                  placeholder="0.00"
+                  className="h-9"
+                />
+              </div>
+
+              <div className="flex justify-between items-center text-sm pt-2 border-t">
+                <span className="font-semibold">Balance</span>
+                <span
+                  className={`text-lg font-bold ${
+                    totals.balance > 0 ? "text-destructive" : "text-green-600"
+                  }`}
+                >
+                  {formatCurrency(totals.balance)}
+                </span>
               </div>
 
               <Button
                 onClick={handleSaveInvoice}
-                className="w-full"
+                className="w-full mt-4"
                 disabled={createInvoice.isPending}
                 data-testid="button-save-invoice"
               >
                 <Save className="mr-2 h-4 w-4" />
                 {createInvoice.isPending ? "Saving..." : "Save Invoice"}
               </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Quick Add Customer Dialog */}
       <Dialog open={showAddCustomer} onOpenChange={setShowAddCustomer}>

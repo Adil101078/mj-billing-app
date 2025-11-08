@@ -21,12 +21,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Eye, Printer, Trash2 } from "lucide-react";
+import { Search, Eye, Printer, Trash2, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   useInvoices,
   useDeleteInvoice,
   useUpdateInvoiceStatus,
+  useUpdateCashReceived,
   useSettings,
 } from "@/lib/hooks";
 
@@ -39,6 +40,8 @@ export default function Invoices() {
   const [showDialog, setShowDialog] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState<string | null>(null);
+  const [editingCashReceived, setEditingCashReceived] = useState(false);
+  const [cashReceivedInput, setCashReceivedInput] = useState("");
 
   const { data: invoicesData, isLoading: invoicesLoading } = useInvoices({
     search: searchQuery,
@@ -46,6 +49,7 @@ export default function Invoices() {
   const { data: settings, isLoading: settingsLoading } = useSettings();
   const deleteInvoice = useDeleteInvoice();
   const updateStatus = useUpdateInvoiceStatus();
+  const updateCashReceived = useUpdateCashReceived();
 
   const invoices = invoicesData?.invoices || [];
   const selectedInvoice = selectedInvoiceId
@@ -684,6 +688,50 @@ export default function Invoices() {
     }
   };
 
+  const handleEditCashReceived = () => {
+    if (selectedInvoice) {
+      setCashReceivedInput(""); // Start with empty to add new amount
+      setEditingCashReceived(true);
+    }
+  };
+
+  const handleSaveCashReceived = async () => {
+    if (!selectedInvoiceId) return;
+
+    const amount = parseFloat(cashReceivedInput);
+    if (isNaN(amount) || amount < 0) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid amount",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await updateCashReceived.mutateAsync({
+        id: selectedInvoiceId,
+        cashReceived: amount,
+      });
+      toast({
+        title: "Success",
+        description: "Cash received updated successfully",
+      });
+      setEditingCashReceived(false);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update cash received",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCashReceived(false);
+    setCashReceivedInput("");
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -1045,11 +1093,55 @@ export default function Invoices() {
                       <span>Net Amount:</span>
                       <span>{formatCurrency(selectedInvoice.total)}</span>
                     </div>
-                    <div className="flex justify-between text-sm border-t pt-2">
+                    <div className="flex justify-between items-center text-sm border-t pt-2">
                       <span>Cash Received:</span>
-                      <span className="text-green-600">
-                        {formatCurrency(selectedInvoice.cashReceived || 0)}
-                      </span>
+                      {editingCashReceived ? (
+                        <div className="flex flex-col gap-2 items-end">
+                          <div className="text-xs text-muted-foreground">
+                            Current: {formatCurrency(selectedInvoice.cashReceived || 0)}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="number"
+                              value={cashReceivedInput}
+                              onChange={(e) => setCashReceivedInput(e.target.value)}
+                              className="w-32 h-8"
+                              placeholder="Add amount..."
+                              min="0"
+                              step="0.01"
+                              autoFocus
+                            />
+                            <Button
+                              size="sm"
+                              onClick={handleSaveCashReceived}
+                              disabled={updateCashReceived.isPending}
+                            >
+                              Add
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={handleCancelEdit}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span className="text-green-600">
+                            {formatCurrency(selectedInvoice.cashReceived || 0)}
+                          </span>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-6 w-6"
+                            onClick={handleEditCashReceived}
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
                     <div className="flex justify-between text-sm font-bold">
                       <span>Balance:</span>
@@ -1077,6 +1169,26 @@ export default function Invoices() {
           )}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the invoice.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteInvoice}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

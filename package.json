@@ -8,11 +8,11 @@
     "build": "vite build",
     "preview": "vite preview",
     "check": "tsc",
-    "api": "tsx api/index.ts",
-    "api:dev": "nodemon --watch api --exec tsx api/index.ts",
-    "seed:admin": "tsx api/scripts/seedAdmin.ts",
-    "start": "tsx api/scripts/seedAdmin.ts && tsx api/index.ts",
-    "build:api": "tsc --project api/tsconfig.json --outDir build/api"
+    "api": "cd api && npm run dev",
+    "api:dev": "cd api && npm run dev",
+    "seed:admin": "cd api && npm run seed:admin",
+    "start": "cd api && npm start",
+    "build:api": "cd api && npm run build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -92,6 +92,8 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.20.6",
     "typescript": "5.6.3",
-    "vite": "^5.4.20"
+    "vite": "^5.4.20",
+    "vite-plugin-pwa": "^1.1.0",
+    "workbox-window": "^7.3.0"
   }
 }
