@@ -3,12 +3,11 @@
   "version": "1.0.0",
   "description": "MJ Jewellers Invoice Management API",
   "main": "index.js",
-  "type": "commonjs",
   "scripts": {
     "dev": "nodemon --watch . --exec tsx index.ts",
     "start": "tsx scripts/seedAdmin.ts && tsx index.ts",
     "build": "tsc",
-    "start:prod": "node ../build/api/index.js",
+    "start:prod": "node ./build/index.js",
     "seed:admin": "tsx scripts/seedAdmin.ts",
     "pm2:start": "pm2 start ecosystem.config.cjs",
     "pm2:stop": "pm2 stop MJ-BILLING-API",
@@ -17,7 +16,11 @@
     "pm2:logs": "pm2 logs MJ-BILLING-API",
     "pm2:status": "pm2 status MJ-BILLING-API"
   },
-  "keywords": ["invoice", "billing", "api"],
+  "keywords": [
+    "invoice",
+    "billing",
+    "api"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {

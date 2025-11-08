@@ -246,12 +246,21 @@ export const updateInvoice = async (req: Request, res: Response) => {
       }, 0);
 
       // Use provided values or current values
-      const cGstRate = cgstRate !== undefined ? cgstRate : currentInvoice.cgstRate;
-      const sGstRate = sgstRate !== undefined ? sgstRate : currentInvoice.sgstRate;
+      const cGstRate =
+        cgstRate !== undefined ? cgstRate : currentInvoice.cgstRate;
+      const sGstRate =
+        sgstRate !== undefined ? sgstRate : currentInvoice.sgstRate;
       const disc = discount !== undefined ? discount : currentInvoice.discount;
-      const oldGoldWt = oldGoldWeight !== undefined ? oldGoldWeight : currentInvoice.oldGoldWeight;
-      const oldGoldAmt = oldGoldAmount !== undefined ? oldGoldAmount : currentInvoice.oldGoldAmount;
-      const cashRcvd = cashReceived !== undefined ? cashReceived : currentInvoice.cashReceived;
+      const oldGoldWt =
+        oldGoldWeight !== undefined
+          ? oldGoldWeight
+          : currentInvoice.oldGoldWeight;
+      const oldGoldAmt =
+        oldGoldAmount !== undefined
+          ? oldGoldAmount
+          : currentInvoice.oldGoldAmount;
+      const cashRcvd =
+        cashReceived !== undefined ? cashReceived : currentInvoice.cashReceived;
 
       // Calculate taxes
       const cgstAmt = (subtotal * cGstRate) / 100;
@@ -268,7 +277,10 @@ export const updateInvoice = async (req: Request, res: Response) => {
 
       // Determine if status should be updated based on balance
       const status = balanceAmt <= 0 ? "paid" : "unpaid";
-      const paidAt = status === "paid" && !currentInvoice.paidAt ? new Date() : currentInvoice.paidAt;
+      const paidAt =
+        status === "paid" && !currentInvoice.paidAt
+          ? new Date()
+          : currentInvoice.paidAt;
 
       updateData = {
         ...updateData,
@@ -351,7 +363,9 @@ export const updateCashReceived = async (req: Request, res: Response) => {
     const { cashReceived } = req.body;
 
     if (cashReceived === undefined || cashReceived === null) {
-      return res.status(400).json({ message: "Cash received amount is required" });
+      return res
+        .status(400)
+        .json({ message: "Cash received amount is required" });
     }
 
     const invoice = await Invoice.findById(req.params.id);
@@ -463,7 +477,8 @@ export const getDashboardStats = async (req: Request, res: Response) => {
       },
     ]);
 
-    const totalBalance = balanceData.length > 0 ? balanceData[0].totalBalance : 0;
+    const totalBalance =
+      balanceData.length > 0 ? balanceData[0].totalBalance : 0;
 
     // Recent invoices
     const recentInvoices = await Invoice.find()
@@ -494,8 +509,6 @@ export const getDashboardStats = async (req: Request, res: Response) => {
       },
       { $sort: { "_id.year": 1, "_id.month": 1 } },
     ]);
-
-    console.log("Monthly revenue data:", monthlyRevenue.length, "months");
 
     res.json({
       overview: {

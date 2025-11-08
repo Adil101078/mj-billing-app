@@ -1,19 +1,30 @@
 {
-  "compilerOptions": {
-    "target": "ES2022",
-    "module": "CommonJS",
-    "lib": ["ES2022"],
-    "outDir": "../build/api",
-    "rootDir": "./",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true,
-    "types": ["node"]
-  },
-  "include": ["./**/*.ts"],
-  "exclude": ["node_modules", "../build"]
+	"compilerOptions": {
+		"target": "es6",
+		"module": "commonjs",
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"moduleResolution": "node",
+		"noImplicitAny": false,
+		"sourceMap": false,
+		"outDir": "build",
+		"baseUrl": "src",
+		"skipLibCheck": true,
+		"resolveJsonModule": true,
+		"typeRoots": ["src/@types", "node_modules/@types"],
+		"paths": {
+			"@modules/*": ["modules/*"],
+			"@models/*": ["models/*"],
+			"@config": ["core/config"],
+			"@core/*": ["core/*"],
+			"@middlewares/*": ["middlewares/*"],
+			"@helpers/*": ["helpers/*"],
+			"@jobs/*": ["jobs/*"]
+		},
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true,
+		"forceConsistentCasingInFileNames": true
+	},
+	"include": ["**/*.ts"],
+	"exclude": ["node_modules", "test/**/*.ts"]
 }

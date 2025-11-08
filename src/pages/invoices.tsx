@@ -868,36 +868,36 @@ export default function Invoices() {
       </Card>
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full p-4 sm:p-6">
           <DialogHeader>
-            <DialogTitle>Invoice Details</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">Invoice Details</DialogTitle>
           </DialogHeader>
           {selectedInvoice && !settingsLoading && settings && (
-            <div className="space-y-6 print:p-8">
-              <div className="border-b border-border pb-4 print:border-black">
-                <div className="flex items-start gap-4">
+            <div className="space-y-4 sm:space-y-6 print:p-8">
+              <div className="border-b border-border pb-3 sm:pb-4 print:border-black">
+                <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
                   {settings.logo && (
                     <img
                       src={settings.logo}
                       alt={settings.shopName}
-                      className="h-20 w-20 object-contain print:h-16 print:w-16"
+                      className="h-16 w-16 sm:h-20 sm:w-20 object-contain print:h-16 print:w-16"
                     />
                   )}
                   <div className="flex-1">
-                    <h2 className="font-serif text-2xl font-bold print:text-3xl">
+                    <h2 className="font-serif text-xl sm:text-2xl font-bold print:text-3xl">
                       {settings.shopName}
                     </h2>
-                    <p className="text-sm text-muted-foreground print:text-black">
+                    <p className="text-xs sm:text-sm text-muted-foreground print:text-black">
                       {settings.address}
                     </p>
-                    <p className="text-sm text-muted-foreground print:text-black">
+                    <p className="text-xs sm:text-sm text-muted-foreground print:text-black">
                       Phone: {settings.phone}
                     </p>
-                    <p className="text-sm text-muted-foreground print:text-black">
+                    <p className="text-xs sm:text-sm text-muted-foreground print:text-black">
                       Email: {settings.email}
                     </p>
                     {settings.gstNumber && (
-                      <p className="text-sm text-muted-foreground print:text-black">
+                      <p className="text-xs sm:text-sm text-muted-foreground print:text-black">
                         GST: {settings.gstNumber}
                       </p>
                     )}
@@ -905,19 +905,19 @@ export default function Invoices() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <h3 className="text-sm font-semibold mb-2">
                     Invoice Details
                   </h3>
-                  <p className="text-sm">
+                  <p className="text-xs sm:text-sm">
                     <strong>Invoice #:</strong> {selectedInvoice.invoiceNumber}
                   </p>
-                  <p className="text-sm">
+                  <p className="text-xs sm:text-sm">
                     <strong>Date:</strong>{" "}
                     {new Date(selectedInvoice.invoiceDate).toLocaleDateString()}
                   </p>
-                  <p className="text-sm">
+                  <p className="text-xs sm:text-sm">
                     <strong>Status:</strong> {selectedInvoice.status}
                   </p>
                 </div>
@@ -925,21 +925,21 @@ export default function Invoices() {
                   <h3 className="text-sm font-semibold mb-2">
                     Customer Details
                   </h3>
-                  <p className="text-sm font-medium">
+                  <p className="text-xs sm:text-sm font-medium">
                     {selectedInvoice.customerId?.name || "N/A"}
                   </p>
                   {selectedInvoice.customerId?.phone && (
-                    <p className="text-sm">
+                    <p className="text-xs sm:text-sm">
                       Phone: {selectedInvoice.customerId.phone}
                     </p>
                   )}
                   {selectedInvoice.customerId?.email && (
-                    <p className="text-sm">
+                    <p className="text-xs sm:text-sm">
                       Email: {selectedInvoice.customerId.email}
                     </p>
                   )}
                   {selectedInvoice.customerId?.address?.street && (
-                    <p className="text-sm">
+                    <p className="text-xs sm:text-sm">
                       Address: {selectedInvoice.customerId.address.street}
                     </p>
                   )}
@@ -948,7 +948,61 @@ export default function Invoices() {
 
               <div>
                 <h3 className="text-sm font-semibold mb-3">Items</h3>
-                <div className="overflow-x-auto">
+                {/* Mobile Card View */}
+                <div className="block sm:hidden space-y-3">
+                  {selectedInvoice.items.map((item: any, index: number) => (
+                    <div key={index} className="border border-border rounded-lg p-3 space-y-2">
+                      <div className="font-medium text-sm">
+                        {index + 1}. {item.description}
+                        {item.itemType && (
+                          <span className="text-muted-foreground ml-1 text-xs">
+                            ({item.itemType})
+                          </span>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">HSN:</span>
+                          <span>{item.hsnCode || "-"}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Pcs:</span>
+                          <span>{item.pcs || 1}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">G.Wt:</span>
+                          <span>{item.grossWeight ? item.grossWeight.toFixed(3) : "-"}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Less:</span>
+                          <span>{item.lessWeight ? item.lessWeight.toFixed(3) : "-"}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Net Wt:</span>
+                          <span className="font-medium">{item.netWeight ? item.netWeight.toFixed(3) : "-"}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Rate:</span>
+                          <span>{formatCurrency(item.ratePerTenGram || 0)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Metal:</span>
+                          <span>{formatCurrency(item.metalAmount || 0)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Labour:</span>
+                          <span>{item.labourChargeAmount > 0 ? formatCurrency(item.labourChargeAmount) : "-"}</span>
+                        </div>
+                      </div>
+                      <div className="flex justify-between border-t pt-2 font-bold text-sm">
+                        <span>Amount:</span>
+                        <span>{formatCurrency(item.amount)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {/* Desktop Table View */}
+                <div className="hidden sm:block overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="border-b border-border bg-muted">
@@ -1014,24 +1068,24 @@ export default function Invoices() {
               </div>
 
               <div className="border-t border-border pt-4">
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <div className="space-y-2">
                     <h4 className="text-sm font-semibold mb-2">
                       Tax Breakdown
                     </h4>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-xs sm:text-sm">
                       <span>CGST ({selectedInvoice.cgstRate || 0}%):</span>
                       <span>
                         {formatCurrency(selectedInvoice.cgstAmount || 0)}
                       </span>
                     </div>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-xs sm:text-sm">
                       <span>SGST ({selectedInvoice.sgstRate || 0}%):</span>
                       <span>
                         {formatCurrency(selectedInvoice.sgstAmount || 0)}
                       </span>
                     </div>
-                    <div className="flex justify-between text-sm font-medium border-t pt-2">
+                    <div className="flex justify-between text-xs sm:text-sm font-medium border-t pt-2">
                       <span>Total Tax:</span>
                       <span>{formatCurrency(selectedInvoice.taxAmount)}</span>
                     </div>
@@ -1042,13 +1096,13 @@ export default function Invoices() {
                         <h4 className="text-sm font-semibold mb-2">
                           Old Gold Exchange
                         </h4>
-                        <div className="flex justify-between text-sm">
+                        <div className="flex justify-between text-xs sm:text-sm">
                           <span>Weight:</span>
                           <span>
                             {selectedInvoice.oldGoldWeight?.toFixed(3) || 0} g
                           </span>
                         </div>
-                        <div className="flex justify-between text-sm">
+                        <div className="flex justify-between text-xs sm:text-sm">
                           <span>Amount:</span>
                           <span>
                             -
@@ -1061,22 +1115,22 @@ export default function Invoices() {
 
                   <div className="space-y-2">
                     <h4 className="text-sm font-semibold mb-2">Summary</h4>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-xs sm:text-sm">
                       <span>Subtotal (Gross):</span>
                       <span>{formatCurrency(selectedInvoice.subtotal)}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-xs sm:text-sm">
                       <span>Tax ({selectedInvoice.taxRate}%):</span>
                       <span>{formatCurrency(selectedInvoice.taxAmount)}</span>
                     </div>
                     {selectedInvoice.discount > 0 && (
-                      <div className="flex justify-between text-sm text-green-600">
+                      <div className="flex justify-between text-xs sm:text-sm text-green-600">
                         <span>Discount:</span>
                         <span>-{formatCurrency(selectedInvoice.discount)}</span>
                       </div>
                     )}
                     {selectedInvoice.oldGoldAmount > 0 && (
-                      <div className="flex justify-between text-sm text-green-600">
+                      <div className="flex justify-between text-xs sm:text-sm text-green-600">
                         <span>Less Old Gold:</span>
                         <span>
                           -{formatCurrency(selectedInvoice.oldGoldAmount)}
@@ -1084,47 +1138,51 @@ export default function Invoices() {
                       </div>
                     )}
                     {selectedInvoice.roundOff && (
-                      <div className="flex justify-between text-sm text-muted-foreground">
+                      <div className="flex justify-between text-xs sm:text-sm text-muted-foreground">
                         <span>Round Off:</span>
                         <span>{formatCurrency(selectedInvoice.roundOff)}</span>
                       </div>
                     )}
-                    <div className="flex justify-between font-bold text-lg border-t border-border pt-2">
+                    <div className="flex justify-between font-bold text-base sm:text-lg border-t border-border pt-2">
                       <span>Net Amount:</span>
                       <span>{formatCurrency(selectedInvoice.total)}</span>
                     </div>
-                    <div className="flex justify-between items-center text-sm border-t pt-2">
-                      <span>Cash Received:</span>
+                    <div className="flex justify-between items-start text-xs sm:text-sm border-t pt-2">
+                      <span className="pt-1">Cash Received:</span>
                       {editingCashReceived ? (
-                        <div className="flex flex-col gap-2 items-end">
+                        <div className="flex flex-col gap-2 items-end w-full sm:w-auto">
                           <div className="text-xs text-muted-foreground">
                             Current: {formatCurrency(selectedInvoice.cashReceived || 0)}
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                             <Input
                               type="number"
                               value={cashReceivedInput}
                               onChange={(e) => setCashReceivedInput(e.target.value)}
-                              className="w-32 h-8"
+                              className="w-full sm:w-32 h-8"
                               placeholder="Add amount..."
                               min="0"
                               step="0.01"
                               autoFocus
                             />
-                            <Button
-                              size="sm"
-                              onClick={handleSaveCashReceived}
-                              disabled={updateCashReceived.isPending}
-                            >
-                              Add
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={handleCancelEdit}
-                            >
-                              Cancel
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                onClick={handleSaveCashReceived}
+                                disabled={updateCashReceived.isPending}
+                                className="flex-1 sm:flex-none"
+                              >
+                                Add
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={handleCancelEdit}
+                                className="flex-1 sm:flex-none"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       ) : (
@@ -1143,7 +1201,7 @@ export default function Invoices() {
                         </div>
                       )}
                     </div>
-                    <div className="flex justify-between text-sm font-bold">
+                    <div className="flex justify-between text-xs sm:text-sm font-bold">
                       <span>Balance:</span>
                       <span
                         className={
