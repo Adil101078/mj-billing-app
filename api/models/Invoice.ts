@@ -2,11 +2,17 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IInvoiceItem {
   description: string;
-  quantity: number;
-  rate: number;
-  amount: number;
   hsnCode?: string;
-  taxRate?: number;
+  pcs: number; // Number of pieces
+  grossWeight: number; // Gross weight in grams
+  lessWeight: number; // Weight to deduct (stone, etc.)
+  netWeight: number; // Net weight after deduction
+  ratePerTenGram: number; // Rate per 10 grams
+  metalAmount: number; // Amount from metal (calculated)
+  labourChargeRate?: number; // Labour charge per gram
+  labourChargeAmount?: number; // Total labour charge
+  amount: number; // Final amount for this item
+  itemType?: string; // Gold 22K, Silver 925, etc.
 }
 
 export interface IInvoice extends Document {
@@ -23,12 +29,21 @@ export interface IInvoice extends Document {
     country: string;
   };
   items: IInvoiceItem[];
-  subtotal: number;
-  taxAmount: number;
-  taxRate: number;
+  subtotal: number; // Gross amount before tax
+  taxAmount: number; // Total tax (CGST + SGST)
+  taxRate: number; // Total tax rate
+  cgstRate: number; // CGST rate
+  cgstAmount: number; // CGST amount
+  sgstRate: number; // SGST rate
+  sgstAmount: number; // SGST amount
   discount: number;
-  total: number;
-  status: "draft" | "sent" | "paid" | "cancelled" | "overdue";
+  roundOff: number; // Round off amount
+  oldGoldWeight: number; // Weight of old gold exchanged
+  oldGoldAmount: number; // Value of old gold deducted
+  cashReceived: number; // Cash received from customer
+  balanceAmount: number; // Balance pending
+  total: number; // Final total amount
+  status: "draft" | "unpaid" | "paid" | "cancelled" | "overdue";
   invoiceDate: Date;
   dueDate: Date;
   notes?: string;
@@ -45,29 +60,59 @@ const InvoiceItemSchema = new Schema({
     required: true,
     trim: true,
   },
-  quantity: {
+  hsnCode: {
+    type: String,
+    trim: true,
+  },
+  pcs: {
+    type: Number,
+    required: true,
+    min: 0,
+    default: 1,
+  },
+  grossWeight: {
     type: Number,
     required: true,
     min: 0,
   },
-  rate: {
+  lessWeight: {
+    type: Number,
+    min: 0,
+    default: 0,
+  },
+  netWeight: {
     type: Number,
     required: true,
     min: 0,
+  },
+  ratePerTenGram: {
+    type: Number,
+    required: true,
+    min: 0,
+  },
+  metalAmount: {
+    type: Number,
+    required: true,
+    min: 0,
+  },
+  labourChargeRate: {
+    type: Number,
+    min: 0,
+    default: 0,
+  },
+  labourChargeAmount: {
+    type: Number,
+    min: 0,
+    default: 0,
   },
   amount: {
     type: Number,
     required: true,
     min: 0,
   },
-  hsnCode: {
+  itemType: {
     type: String,
     trim: true,
-  },
-  taxRate: {
-    type: Number,
-    min: 0,
-    max: 100,
   },
 });
 
@@ -123,9 +168,54 @@ const InvoiceSchema: Schema = new Schema(
       max: 100,
       default: 0,
     },
+    cgstRate: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: 0,
+    },
+    cgstAmount: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    sgstRate: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: 0,
+    },
+    sgstAmount: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
     discount: {
       type: Number,
       min: 0,
+      default: 0,
+    },
+    roundOff: {
+      type: Number,
+      default: 0,
+    },
+    oldGoldWeight: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    oldGoldAmount: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    cashReceived: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    balanceAmount: {
+      type: Number,
       default: 0,
     },
     total: {
@@ -135,7 +225,7 @@ const InvoiceSchema: Schema = new Schema(
     },
     status: {
       type: String,
-      enum: ["unpaid", "sent", "paid", "cancelled", "overdue"],
+      enum: ["draft", "unpaid", "paid", "cancelled", "overdue"],
       default: "unpaid",
     },
     invoiceDate: {

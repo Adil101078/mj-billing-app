@@ -14,7 +14,8 @@
       "Bash(curl:*)",
       "Bash(netstat:*)",
       "Bash(timeout:*)",
-      "Bash(npm run dev)"
+      "Bash(npm run dev)",
+      "Bash(npx tsx:*)"
     ],
     "deny": [],
     "ask": []

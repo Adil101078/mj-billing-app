@@ -2,10 +2,12 @@ import express, { Application, Request, Response } from "express";
 import cors, { CorsOptions } from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/database";
+import authRoutes from "./routes/authRoutes";
 import customerRoutes from "./routes/customerRoutes";
 import invoiceRoutes from "./routes/invoiceRoutes";
 import settingsRoutes from "./routes/settingsRoutes";
 import { errorHandler, notFound } from "./middleware/errorHandler";
+import { authMiddleware } from "./middleware/auth";
 
 // Load environment variables
 dotenv.config();
@@ -71,9 +73,13 @@ app.get("/api", (req: Request, res: Response) => {
   });
 });
 
-app.use("/api/customers", customerRoutes);
-app.use("/api/invoices", invoiceRoutes);
-app.use("/api/settings", settingsRoutes);
+// Auth routes (public)
+app.use("/api/auth", authRoutes);
+
+// Protected routes
+app.use("/api/customers", authMiddleware, customerRoutes);
+app.use("/api/invoices", authMiddleware, invoiceRoutes);
+app.use("/api/settings", authMiddleware, settingsRoutes);
 
 // Error handling
 app.use(notFound);

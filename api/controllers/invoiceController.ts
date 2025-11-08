@@ -102,7 +102,17 @@ export const getInvoiceByNumber = async (req: Request, res: Response) => {
 // Create new invoice
 export const createInvoice = async (req: Request, res: Response) => {
   try {
-    const { customerId, items, taxRate = 0, discount = 0, ...rest } = req.body;
+    const {
+      customerId,
+      items,
+      cgstRate = 0,
+      sgstRate = 0,
+      discount = 0,
+      oldGoldWeight = 0,
+      oldGoldAmount = 0,
+      cashReceived = 0,
+      ...rest
+    } = req.body;
 
     // Verify customer exists
     const customer = await Customer.findById(customerId);
@@ -110,13 +120,45 @@ export const createInvoice = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Customer not found" });
     }
 
-    // Calculate amounts
-    const subtotal = items.reduce((sum: number, item: any) => {
-      return sum + item.quantity * item.rate;
+    // Calculate amounts for each item
+    const processedItems = items.map((item: any) => {
+      const netWeight = item.grossWeight - (item.lessWeight || 0);
+      const metalAmount = (netWeight / 10) * item.ratePerTenGram;
+      const labourChargeAmount = (item.labourChargeRate || 0) * netWeight;
+      const amount = metalAmount + labourChargeAmount;
+
+      return {
+        ...item,
+        netWeight,
+        metalAmount,
+        labourChargeAmount,
+        amount,
+      };
+    });
+
+    // Calculate subtotal (gross amount)
+    const subtotal = processedItems.reduce((sum: number, item: any) => {
+      return sum + item.amount;
     }, 0);
 
-    const taxAmount = (subtotal * taxRate) / 100;
-    const total = subtotal + taxAmount - discount;
+    // Calculate taxes
+    const cgstAmount = (subtotal * cgstRate) / 100;
+    const sgstAmount = (subtotal * sgstRate) / 100;
+    const taxAmount = cgstAmount + sgstAmount;
+    const taxRate = cgstRate + sgstRate;
+
+    // Calculate total before old gold
+    const totalBeforeOldGold = subtotal + taxAmount - discount;
+
+    // Calculate final amounts
+    const totalAfterOldGold = totalBeforeOldGold - oldGoldAmount;
+    const roundOff = Math.round(totalAfterOldGold) - totalAfterOldGold;
+    const total = Math.round(totalAfterOldGold);
+    const balanceAmount = total - cashReceived;
+
+    // Determine status based on balance
+    const status = balanceAmount <= 0 ? "paid" : "unpaid";
+    const paidAt = status === "paid" ? new Date() : undefined;
 
     // Create invoice
     const invoice = new Invoice({
@@ -126,15 +168,23 @@ export const createInvoice = async (req: Request, res: Response) => {
       customerEmail: customer.email,
       customerPhone: customer.phone,
       customerAddress: customer.address,
-      items: items.map((item: any) => ({
-        ...item,
-        amount: item.quantity * item.rate,
-      })),
+      items: processedItems,
       subtotal,
       taxAmount,
       taxRate,
+      cgstRate,
+      cgstAmount,
+      sgstRate,
+      sgstAmount,
       discount,
+      roundOff,
+      oldGoldWeight,
+      oldGoldAmount,
+      cashReceived,
+      balanceAmount,
       total,
+      status,
+      paidAt,
     });
 
     await invoice.save();
@@ -153,32 +203,92 @@ export const createInvoice = async (req: Request, res: Response) => {
 // Update invoice
 export const updateInvoice = async (req: Request, res: Response) => {
   try {
-    const { items, taxRate, discount, ...rest } = req.body;
+    const {
+      items,
+      cgstRate,
+      sgstRate,
+      discount,
+      oldGoldWeight,
+      oldGoldAmount,
+      cashReceived,
+      ...rest
+    } = req.body;
 
     let updateData: any = { ...rest };
 
     // Recalculate if items are updated
     if (items) {
-      const subtotal = items.reduce((sum: number, item: any) => {
-        return sum + item.quantity * item.rate;
+      // Get current invoice for default values
+      const currentInvoice = await Invoice.findById(req.params.id);
+      if (!currentInvoice) {
+        return res.status(404).json({ message: "Invoice not found" });
+      }
+
+      // Process items
+      const processedItems = items.map((item: any) => {
+        const netWeight = item.grossWeight - (item.lessWeight || 0);
+        const metalAmount = (netWeight / 10) * item.ratePerTenGram;
+        const labourChargeAmount = (item.labourChargeRate || 0) * netWeight;
+        const amount = metalAmount + labourChargeAmount;
+
+        return {
+          ...item,
+          netWeight,
+          metalAmount,
+          labourChargeAmount,
+          amount,
+        };
+      });
+
+      // Calculate subtotal
+      const subtotal = processedItems.reduce((sum: number, item: any) => {
+        return sum + item.amount;
       }, 0);
 
-      const rate = taxRate !== undefined ? taxRate : 0;
-      const disc = discount !== undefined ? discount : 0;
-      const taxAmount = (subtotal * rate) / 100;
-      const total = subtotal + taxAmount - disc;
+      // Use provided values or current values
+      const cGstRate = cgstRate !== undefined ? cgstRate : currentInvoice.cgstRate;
+      const sGstRate = sgstRate !== undefined ? sgstRate : currentInvoice.sgstRate;
+      const disc = discount !== undefined ? discount : currentInvoice.discount;
+      const oldGoldWt = oldGoldWeight !== undefined ? oldGoldWeight : currentInvoice.oldGoldWeight;
+      const oldGoldAmt = oldGoldAmount !== undefined ? oldGoldAmount : currentInvoice.oldGoldAmount;
+      const cashRcvd = cashReceived !== undefined ? cashReceived : currentInvoice.cashReceived;
+
+      // Calculate taxes
+      const cgstAmt = (subtotal * cGstRate) / 100;
+      const sgstAmt = (subtotal * sGstRate) / 100;
+      const taxAmt = cgstAmt + sgstAmt;
+      const taxRt = cGstRate + sGstRate;
+
+      // Calculate totals
+      const totalBeforeOldGold = subtotal + taxAmt - disc;
+      const totalAfterOldGold = totalBeforeOldGold - oldGoldAmt;
+      const rndOff = Math.round(totalAfterOldGold) - totalAfterOldGold;
+      const total = Math.round(totalAfterOldGold);
+      const balanceAmt = total - cashRcvd;
+
+      // Determine if status should be updated based on balance
+      const status = balanceAmt <= 0 ? "paid" : "unpaid";
+      const paidAt = status === "paid" && !currentInvoice.paidAt ? new Date() : currentInvoice.paidAt;
 
       updateData = {
         ...updateData,
-        items: items.map((item: any) => ({
-          ...item,
-          amount: item.quantity * item.rate,
-        })),
+        items: processedItems,
         subtotal,
-        taxAmount,
-        taxRate: rate,
+        taxAmount: taxAmt,
+        taxRate: taxRt,
+        cgstRate: cGstRate,
+        cgstAmount: cgstAmt,
+        sgstRate: sGstRate,
+        sgstAmount: sgstAmt,
         discount: disc,
+        roundOff: rndOff,
+        oldGoldWeight: oldGoldWt,
+        oldGoldAmount: oldGoldAmt,
+        cashReceived: cashRcvd,
+        balanceAmount: balanceAmt,
         total,
+        status,
+        paidAt,
       };
     }
 
@@ -207,7 +317,7 @@ export const updateInvoiceStatus = async (req: Request, res: Response) => {
   try {
     const { status } = req.body;
 
-    if (!["unpaid", "sent", "paid", "cancelled", "overdue"].includes(status)) {
+    if (!["draft", "unpaid", "paid", "cancelled", "overdue"].includes(status)) {
       return res.status(400).json({ message: "Invalid status" });
     }
 
@@ -291,22 +401,22 @@ export const getDashboardStats = async (req: Request, res: Response) => {
       .limit(5)
       .populate("customerId", "name email");
 
-    // Monthly revenue (last 6 months)
+    // Monthly revenue (last 6 months) - based on invoice date
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
     const monthlyRevenue = await Invoice.aggregate([
       {
         $match: {
-          status: "paid",
-          paidAt: { $gte: sixMonthsAgo },
+          invoiceDate: { $gte: sixMonthsAgo },
+          status: { $ne: "cancelled" }, // Exclude cancelled invoices
         },
       },
       {
         $group: {
           _id: {
-            year: { $year: "$paidAt" },
-            month: { $month: "$paidAt" },
+            year: { $year: "$invoiceDate" },
+            month: { $month: "$invoiceDate" },
           },
           revenue: { $sum: "$total" },
           count: { $sum: 1 },
@@ -314,6 +424,8 @@ export const getDashboardStats = async (req: Request, res: Response) => {
       },
       { $sort: { "_id.year": 1, "_id.month": 1 } },
     ]);
+
+    console.log("Monthly revenue data:", monthlyRevenue.length, "months");
 
     res.json({
       overview: {
