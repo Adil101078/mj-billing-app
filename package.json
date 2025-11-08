@@ -11,7 +11,8 @@
     "api": "tsx api/index.ts",
     "api:dev": "nodemon --watch api --exec tsx api/index.ts",
     "seed:admin": "tsx api/scripts/seedAdmin.ts",
-    "start": "tsx api/scripts/seedAdmin.ts && tsx api/index.ts"
+    "start": "tsx api/scripts/seedAdmin.ts && tsx api/index.ts",
+    "build:api": "tsc --project api/tsconfig.json --outDir build/api"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
