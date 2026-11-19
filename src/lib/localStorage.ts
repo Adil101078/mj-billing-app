@@ -40,9 +40,7 @@ export interface Settings {
   gstNumber: string;
   cgstRate: number;
   sgstRate: number;
-  goldRate: number;
-  silverRate: number;
-  productTypes: Array<{ name: string; ratePerTenGram: number }>;
+  productTypes: Array<{ name: string; ratePerTenGram: number; hsnCode?: string }>;
 }
 
 const STORAGE_KEYS = {
@@ -60,8 +58,6 @@ const DEFAULT_SETTINGS: Settings = {
   gstNumber: "",
   cgstRate: 1.5,
   sgstRate: 1.5,
-  goldRate: 65000,
-  silverRate: 75000,
   productTypes: [
     { name: "Gold 24K", ratePerTenGram: 65000 },
     { name: "Gold 22K", ratePerTenGram: 59500 },

@@ -176,8 +176,9 @@ export const invoiceAPI = {
     return apiCall<any>(`/invoices/number/${invoiceNumber}`);
   },
 
-  getDashboardStats: () => {
-    return apiCall<any>("/invoices/stats/dashboard");
+  getDashboardStats: (params?: Record<string, string>) => {
+    const query = params ? `?${new URLSearchParams(params).toString()}` : "";
+    return apiCall<any>(`/invoices/stats/dashboard${query}`);
   },
 
   create: (invoice: any) => {
@@ -239,13 +240,6 @@ export const settingsAPI = {
     return apiCall<any>("/settings/tax-config", {
       method: "PUT",
       body: JSON.stringify(taxConfig),
-    });
-  },
-
-  updateMetalRates: (metalRates: any) => {
-    return apiCall<any>("/settings/metal-rates", {
-      method: "PUT",
-      body: JSON.stringify(metalRates),
     });
   },
 

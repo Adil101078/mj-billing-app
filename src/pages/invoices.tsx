@@ -21,7 +21,20 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Eye, Printer, Trash2, Pencil } from "lucide-react";
+import {
+  Search,
+  Eye,
+  Printer,
+  Trash2,
+  Plus,
+  Phone,
+  Mail,
+  MapPin,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import {
   useInvoices,
@@ -30,6 +43,74 @@ import {
   useUpdateCashReceived,
   useSettings,
 } from "@/lib/hooks";
+
+// Convert number to words (Indian format)
+const numberToWords = (num: number): string => {
+  if (num === 0) return "Zero";
+
+  const ones = [
+    "",
+    "One",
+    "Two",
+    "Three",
+    "Four",
+    "Five",
+    "Six",
+    "Seven",
+    "Eight",
+    "Nine",
+  ];
+  const tens = [
+    "",
+    "",
+    "Twenty",
+    "Thirty",
+    "Forty",
+    "Fifty",
+    "Sixty",
+    "Seventy",
+    "Eighty",
+    "Ninety",
+  ];
+  const teens = [
+    "Ten",
+    "Eleven",
+    "Twelve",
+    "Thirteen",
+    "Fourteen",
+    "Fifteen",
+    "Sixteen",
+    "Seventeen",
+    "Eighteen",
+    "Nineteen",
+  ];
+
+  const convertHundreds = (n: number): string => {
+    if (n === 0) return "";
+    if (n < 10) return ones[n];
+    if (n < 20) return teens[n - 10];
+    if (n < 100)
+      return tens[Math.floor(n / 10)] + (n % 10 ? " " + ones[n % 10] : "");
+    return (
+      ones[Math.floor(n / 100)] +
+      " Hundred" +
+      (n % 100 ? " " + convertHundreds(n % 100) : "")
+    );
+  };
+
+  const crore = Math.floor(num / 10000000);
+  const lakh = Math.floor((num % 10000000) / 100000);
+  const thousand = Math.floor((num % 100000) / 1000);
+  const remainder = Math.floor(num % 1000);
+
+  let words = "";
+  if (crore > 0) words += convertHundreds(crore) + " Crore ";
+  if (lakh > 0) words += convertHundreds(lakh) + " Lakh ";
+  if (thousand > 0) words += convertHundreds(thousand) + " Thousand ";
+  if (remainder > 0) words += convertHundreds(remainder);
+
+  return words.trim() + " ONLY";
+};
 
 export default function Invoices() {
   const { toast } = useToast();
@@ -93,74 +174,6 @@ export default function Invoices() {
     // Format currency helper
     const formatCurrency = (amount: number) => {
       return amount.toFixed(2);
-    };
-
-    // Convert number to words (Indian format)
-    const numberToWords = (num: number): string => {
-      if (num === 0) return "Zero";
-
-      const ones = [
-        "",
-        "One",
-        "Two",
-        "Three",
-        "Four",
-        "Five",
-        "Six",
-        "Seven",
-        "Eight",
-        "Nine",
-      ];
-      const tens = [
-        "",
-        "",
-        "Twenty",
-        "Thirty",
-        "Forty",
-        "Fifty",
-        "Sixty",
-        "Seventy",
-        "Eighty",
-        "Ninety",
-      ];
-      const teens = [
-        "Ten",
-        "Eleven",
-        "Twelve",
-        "Thirteen",
-        "Fourteen",
-        "Fifteen",
-        "Sixteen",
-        "Seventeen",
-        "Eighteen",
-        "Nineteen",
-      ];
-
-      const convertHundreds = (n: number): string => {
-        if (n === 0) return "";
-        if (n < 10) return ones[n];
-        if (n < 20) return teens[n - 10];
-        if (n < 100)
-          return tens[Math.floor(n / 10)] + (n % 10 ? " " + ones[n % 10] : "");
-        return (
-          ones[Math.floor(n / 100)] +
-          " Hundred" +
-          (n % 100 ? " " + convertHundreds(n % 100) : "")
-        );
-      };
-
-      const crore = Math.floor(num / 10000000);
-      const lakh = Math.floor((num % 10000000) / 100000);
-      const thousand = Math.floor((num % 100000) / 1000);
-      const remainder = Math.floor(num % 1000);
-
-      let words = "";
-      if (crore > 0) words += convertHundreds(crore) + " Crore ";
-      if (lakh > 0) words += convertHundreds(lakh) + " Lakh ";
-      if (thousand > 0) words += convertHundreds(thousand) + " Thousand ";
-      if (remainder > 0) words += convertHundreds(remainder);
-
-      return words.trim() + " ONLY";
     };
 
     const html = `
@@ -867,363 +880,36 @@ export default function Invoices() {
         </CardContent>
       </Card>
 
-      <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full p-4 sm:p-6">
-          <DialogHeader>
-            <DialogTitle className="text-lg sm:text-xl">Invoice Details</DialogTitle>
-          </DialogHeader>
-          {selectedInvoice && !settingsLoading && settings && (
-            <div className="space-y-4 sm:space-y-6 print:p-8">
-              <div className="border-b border-border pb-3 sm:pb-4 print:border-black">
-                <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
-                  {settings.logo && (
-                    <img
-                      src={settings.logo}
-                      alt={settings.shopName}
-                      className="h-16 w-16 sm:h-20 sm:w-20 object-contain print:h-16 print:w-16"
-                    />
-                  )}
-                  <div className="flex-1">
-                    <h2 className="font-serif text-xl sm:text-2xl font-bold print:text-3xl">
-                      {settings.shopName}
-                    </h2>
-                    <p className="text-xs sm:text-sm text-muted-foreground print:text-black">
-                      {settings.address}
-                    </p>
-                    <p className="text-xs sm:text-sm text-muted-foreground print:text-black">
-                      Phone: {settings.phone}
-                    </p>
-                    <p className="text-xs sm:text-sm text-muted-foreground print:text-black">
-                      Email: {settings.email}
-                    </p>
-                    {settings.gstNumber && (
-                      <p className="text-xs sm:text-sm text-muted-foreground print:text-black">
-                        GST: {settings.gstNumber}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <h3 className="text-sm font-semibold mb-2">
-                    Invoice Details
-                  </h3>
-                  <p className="text-xs sm:text-sm">
-                    <strong>Invoice #:</strong> {selectedInvoice.invoiceNumber}
-                  </p>
-                  <p className="text-xs sm:text-sm">
-                    <strong>Date:</strong>{" "}
-                    {new Date(selectedInvoice.invoiceDate).toLocaleDateString()}
-                  </p>
-                  <p className="text-xs sm:text-sm">
-                    <strong>Status:</strong> {selectedInvoice.status}
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold mb-2">
-                    Customer Details
-                  </h3>
-                  <p className="text-xs sm:text-sm font-medium">
-                    {selectedInvoice.customerId?.name || "N/A"}
-                  </p>
-                  {selectedInvoice.customerId?.phone && (
-                    <p className="text-xs sm:text-sm">
-                      Phone: {selectedInvoice.customerId.phone}
-                    </p>
-                  )}
-                  {selectedInvoice.customerId?.email && (
-                    <p className="text-xs sm:text-sm">
-                      Email: {selectedInvoice.customerId.email}
-                    </p>
-                  )}
-                  {selectedInvoice.customerId?.address?.street && (
-                    <p className="text-xs sm:text-sm">
-                      Address: {selectedInvoice.customerId.address.street}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-semibold mb-3">Items</h3>
-                {/* Mobile Card View */}
-                <div className="block sm:hidden space-y-3">
-                  {selectedInvoice.items.map((item: any, index: number) => (
-                    <div key={index} className="border border-border rounded-lg p-3 space-y-2">
-                      <div className="font-medium text-sm">
-                        {index + 1}. {item.description}
-                        {item.itemType && (
-                          <span className="text-muted-foreground ml-1 text-xs">
-                            ({item.itemType})
-                          </span>
-                        )}
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">HSN:</span>
-                          <span>{item.hsnCode || "-"}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Pcs:</span>
-                          <span>{item.pcs || 1}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">G.Wt:</span>
-                          <span>{item.grossWeight ? item.grossWeight.toFixed(3) : "-"}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Less:</span>
-                          <span>{item.lessWeight ? item.lessWeight.toFixed(3) : "-"}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Net Wt:</span>
-                          <span className="font-medium">{item.netWeight ? item.netWeight.toFixed(3) : "-"}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Rate:</span>
-                          <span>{formatCurrency(item.ratePerTenGram || 0)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Metal:</span>
-                          <span>{formatCurrency(item.metalAmount || 0)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Labour:</span>
-                          <span>{item.labourChargeAmount > 0 ? formatCurrency(item.labourChargeAmount) : "-"}</span>
-                        </div>
-                      </div>
-                      <div className="flex justify-between border-t pt-2 font-bold text-sm">
-                        <span>Amount:</span>
-                        <span>{formatCurrency(item.amount)}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                {/* Desktop Table View */}
-                <div className="hidden sm:block overflow-x-auto">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="border-b border-border bg-muted">
-                        <th className="text-left py-2 px-2">Description</th>
-                        <th className="text-center py-2 px-2">HSN</th>
-                        <th className="text-center py-2 px-2">Pcs</th>
-                        <th className="text-right py-2 px-2">G.Wt.</th>
-                        <th className="text-right py-2 px-2">Less</th>
-                        <th className="text-right py-2 px-2">Net Wt.</th>
-                        <th className="text-right py-2 px-2">Rate/10gm</th>
-                        <th className="text-right py-2 px-2">Metal Amt</th>
-                        <th className="text-right py-2 px-2">Labour</th>
-                        <th className="text-right py-2 px-2">Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {selectedInvoice.items.map((item: any, index: number) => (
-                        <tr key={index} className="border-b border-border">
-                          <td className="py-2 px-2">
-                            {item.description}
-                            {item.itemType && (
-                              <span className="text-muted-foreground ml-1">
-                                ({item.itemType})
-                              </span>
-                            )}
-                          </td>
-                          <td className="text-center py-2 px-2 text-muted-foreground">
-                            {item.hsnCode || "-"}
-                          </td>
-                          <td className="text-center py-2 px-2">
-                            {item.pcs || 1}
-                          </td>
-                          <td className="text-right py-2 px-2">
-                            {item.grossWeight
-                              ? item.grossWeight.toFixed(3)
-                              : "-"}
-                          </td>
-                          <td className="text-right py-2 px-2 text-muted-foreground">
-                            {item.lessWeight ? item.lessWeight.toFixed(3) : "-"}
-                          </td>
-                          <td className="text-right py-2 px-2 font-medium">
-                            {item.netWeight ? item.netWeight.toFixed(3) : "-"}
-                          </td>
-                          <td className="text-right py-2 px-2">
-                            {formatCurrency(item.ratePerTenGram || 0)}
-                          </td>
-                          <td className="text-right py-2 px-2">
-                            {formatCurrency(item.metalAmount || 0)}
-                          </td>
-                          <td className="text-right py-2 px-2 text-muted-foreground">
-                            {item.labourChargeAmount > 0
-                              ? formatCurrency(item.labourChargeAmount)
-                              : "-"}
-                          </td>
-                          <td className="text-right py-2 px-2 font-bold">
-                            {formatCurrency(item.amount)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <div className="border-t border-border pt-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-semibold mb-2">
-                      Tax Breakdown
-                    </h4>
-                    <div className="flex justify-between text-xs sm:text-sm">
-                      <span>CGST ({selectedInvoice.cgstRate || 0}%):</span>
-                      <span>
-                        {formatCurrency(selectedInvoice.cgstAmount || 0)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-xs sm:text-sm">
-                      <span>SGST ({selectedInvoice.sgstRate || 0}%):</span>
-                      <span>
-                        {formatCurrency(selectedInvoice.sgstAmount || 0)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-xs sm:text-sm font-medium border-t pt-2">
-                      <span>Total Tax:</span>
-                      <span>{formatCurrency(selectedInvoice.taxAmount)}</span>
-                    </div>
-
-                    {(selectedInvoice.oldGoldWeight > 0 ||
-                      selectedInvoice.oldGoldAmount > 0) && (
-                      <div className="mt-4">
-                        <h4 className="text-sm font-semibold mb-2">
-                          Old Gold Exchange
-                        </h4>
-                        <div className="flex justify-between text-xs sm:text-sm">
-                          <span>Weight:</span>
-                          <span>
-                            {selectedInvoice.oldGoldWeight?.toFixed(3) || 0} g
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-xs sm:text-sm">
-                          <span>Amount:</span>
-                          <span>
-                            -
-                            {formatCurrency(selectedInvoice.oldGoldAmount || 0)}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-semibold mb-2">Summary</h4>
-                    <div className="flex justify-between text-xs sm:text-sm">
-                      <span>Subtotal (Gross):</span>
-                      <span>{formatCurrency(selectedInvoice.subtotal)}</span>
-                    </div>
-                    <div className="flex justify-between text-xs sm:text-sm">
-                      <span>Tax ({selectedInvoice.taxRate}%):</span>
-                      <span>{formatCurrency(selectedInvoice.taxAmount)}</span>
-                    </div>
-                    {selectedInvoice.discount > 0 && (
-                      <div className="flex justify-between text-xs sm:text-sm text-green-600">
-                        <span>Discount:</span>
-                        <span>-{formatCurrency(selectedInvoice.discount)}</span>
-                      </div>
-                    )}
-                    {selectedInvoice.oldGoldAmount > 0 && (
-                      <div className="flex justify-between text-xs sm:text-sm text-green-600">
-                        <span>Less Old Gold:</span>
-                        <span>
-                          -{formatCurrency(selectedInvoice.oldGoldAmount)}
-                        </span>
-                      </div>
-                    )}
-                    {selectedInvoice.roundOff && (
-                      <div className="flex justify-between text-xs sm:text-sm text-muted-foreground">
-                        <span>Round Off:</span>
-                        <span>{formatCurrency(selectedInvoice.roundOff)}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between font-bold text-base sm:text-lg border-t border-border pt-2">
-                      <span>Net Amount:</span>
-                      <span>{formatCurrency(selectedInvoice.total)}</span>
-                    </div>
-                    <div className="flex justify-between items-start text-xs sm:text-sm border-t pt-2">
-                      <span className="pt-1">Cash Received:</span>
-                      {editingCashReceived ? (
-                        <div className="flex flex-col gap-2 items-end w-full sm:w-auto">
-                          <div className="text-xs text-muted-foreground">
-                            Current: {formatCurrency(selectedInvoice.cashReceived || 0)}
-                          </div>
-                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-                            <Input
-                              type="number"
-                              value={cashReceivedInput}
-                              onChange={(e) => setCashReceivedInput(e.target.value)}
-                              className="w-full sm:w-32 h-8"
-                              placeholder="Add amount..."
-                              min="0"
-                              step="0.01"
-                              autoFocus
-                            />
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                onClick={handleSaveCashReceived}
-                                disabled={updateCashReceived.isPending}
-                                className="flex-1 sm:flex-none"
-                              >
-                                Add
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={handleCancelEdit}
-                                className="flex-1 sm:flex-none"
-                              >
-                                Cancel
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <span className="text-green-600">
-                            {formatCurrency(selectedInvoice.cashReceived || 0)}
-                          </span>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-6 w-6"
-                            onClick={handleEditCashReceived}
-                          >
-                            <Pencil className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex justify-between text-xs sm:text-sm font-bold">
-                      <span>Balance:</span>
-                      <span
-                        className={
-                          selectedInvoice.balanceAmount > 0
-                            ? "text-destructive"
-                            : "text-green-600"
-                        }
-                      >
-                        {formatCurrency(selectedInvoice.balanceAmount || 0)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-          {selectedInvoice && settingsLoading && (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">
-                Loading invoice details...
-              </p>
-            </div>
+      <Dialog
+        open={showDialog}
+        onOpenChange={(open) => {
+          setShowDialog(open);
+          if (!open) handleCancelEdit();
+        }}
+      >
+        <DialogContent className="flex max-h-[92dvh] w-[calc(100vw-1.5rem)] max-w-4xl flex-col gap-0 overflow-hidden p-0 sm:w-full">
+          {selectedInvoice ? (
+            <InvoiceDetails
+              invoice={selectedInvoice}
+              settings={settings}
+              settingsLoading={settingsLoading}
+              formatCurrency={formatCurrency}
+              onPrint={() => handlePrintInvoice(selectedInvoice)}
+              payment={{
+                editing: editingCashReceived,
+                value: cashReceivedInput,
+                setValue: setCashReceivedInput,
+                start: handleEditCashReceived,
+                save: handleSaveCashReceived,
+                cancel: handleCancelEdit,
+                saving: updateCashReceived.isPending,
+              }}
+            />
+          ) : (
+            <DialogHeader className="p-6">
+              <DialogTitle>Invoice</DialogTitle>
+              <DialogDescription>This invoice is no longer in the list.</DialogDescription>
+            </DialogHeader>
           )}
         </DialogContent>
       </Dialog>
@@ -1248,5 +934,485 @@ export default function Invoices() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  );
+}
+
+/* ---------- Invoice details dialog body ---------- */
+
+const formatLongDate = (date: string | Date) =>
+  new Date(date).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+
+const weight = (n?: number) => (n ? n.toFixed(3) : "—");
+
+type PaymentControls = {
+  editing: boolean;
+  value: string;
+  setValue: (v: string) => void;
+  start: () => void;
+  save: () => void;
+  cancel: () => void;
+  saving: boolean;
+};
+
+function InvoiceStatusPill({ invoice, formatCurrency }: { invoice: any; formatCurrency: (n: number) => string }) {
+  const balance = invoice.balanceAmount || 0;
+  if (invoice.status === "cancelled") {
+    return (
+      <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+        Cancelled
+      </span>
+    );
+  }
+  if (invoice.status === "paid" || balance <= 0) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-green-600/10 px-2.5 py-1 text-xs font-medium text-green-700 dark:text-green-400">
+        <CheckCircle2 className="h-3.5 w-3.5" />
+        Paid
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive">
+      <AlertCircle className="h-3.5 w-3.5" />
+      {formatCurrency(balance)} due
+    </span>
+  );
+}
+
+function SummaryLine({
+  label,
+  value,
+  className,
+}: {
+  label: React.ReactNode;
+  value: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn("flex items-center justify-between gap-4", className)}>
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-medium tabular-nums">{value}</span>
+    </div>
+  );
+}
+
+function InvoiceDetails({
+  invoice,
+  settings,
+  settingsLoading,
+  formatCurrency,
+  onPrint,
+  payment,
+}: {
+  invoice: any;
+  settings: any;
+  settingsLoading: boolean;
+  formatCurrency: (n: number) => string;
+  onPrint: () => void;
+  payment: PaymentControls;
+}) {
+  const customer = invoice.customerId || {};
+  const customerName = customer.name || invoice.customerName || "Walk-in customer";
+  const customerAddress = [customer.address?.street, customer.address?.city, customer.address?.state]
+    .filter(Boolean)
+    .join(", ");
+
+  const items: any[] = invoice.items || [];
+  const totals = items.reduce(
+    (acc, item) => ({
+      pcs: acc.pcs + (item.pcs || 1),
+      gross: acc.gross + (item.grossWeight || 0),
+      net: acc.net + (item.netWeight || 0),
+    }),
+    { pcs: 0, gross: 0, net: 0 }
+  );
+
+  const total = invoice.total || 0;
+  const received = invoice.cashReceived || 0;
+  const balance = invoice.balanceAmount || 0;
+  const paidShare = total > 0 ? Math.min(100, Math.max(0, Math.round((received / total) * 100))) : 0;
+  const isCancelled = invoice.status === "cancelled";
+  const roundOff = invoice.roundOff || 0;
+
+  const shopContact = settings
+    ? [settings.phone && `Phone ${settings.phone}`, settings.email].filter(Boolean)
+    : [];
+
+  return (
+    <>
+      {/* Header */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b px-4 py-4 pr-12 sm:px-6 sm:pr-14">
+        <DialogHeader className="min-w-0 flex-1 space-y-1 text-left">
+          <div className="flex flex-wrap items-center gap-2">
+            <DialogTitle className="truncate text-lg sm:text-xl">
+              {invoice.invoiceNumber}
+            </DialogTitle>
+            <InvoiceStatusPill invoice={invoice} formatCurrency={formatCurrency} />
+          </div>
+          <DialogDescription>
+            {customerName}, {formatLongDate(invoice.invoiceDate)}
+          </DialogDescription>
+        </DialogHeader>
+        <Button variant="outline" size="sm" onClick={onPrint} disabled={!settings}>
+          <Printer className="mr-2 h-4 w-4" />
+          Print
+        </Button>
+      </div>
+
+      {/* Body */}
+      <div className="flex-1 overflow-y-auto bg-muted/30 p-3 sm:p-6">
+        {settingsLoading || !settings ? (
+          <div className="space-y-4 rounded-xl border bg-card p-6">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-40 w-full" />
+          </div>
+        ) : (
+          <article className="overflow-hidden rounded-xl border border-t-4 border-t-primary bg-card shadow-sm">
+            {/* Shop and invoice meta */}
+            <header className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between sm:p-6">
+              <div className="flex min-w-0 items-start gap-3">
+                {settings.logo && (
+                  <img
+                    src={settings.logo}
+                    alt=""
+                    className="h-14 w-14 shrink-0 rounded-md border object-contain"
+                  />
+                )}
+                <div className="min-w-0">
+                  <h2 className="font-serif text-xl font-bold sm:text-2xl">{settings.shopName}</h2>
+                  {settings.address && (
+                    <p className="text-sm text-muted-foreground">{settings.address}</p>
+                  )}
+                  {shopContact.length > 0 && (
+                    <p className="text-sm text-muted-foreground">{shopContact.join("  |  ")}</p>
+                  )}
+                  {settings.gstNumber && (
+                    <p className="text-sm text-muted-foreground">
+                      GSTIN <span className="font-medium text-foreground">{settings.gstNumber}</span>
+                    </p>
+                  )}
+                </div>
+              </div>
+              <dl className="grid shrink-0 grid-cols-2 gap-x-6 gap-y-1 text-sm sm:text-right">
+                <dt className="text-muted-foreground sm:col-span-2">Tax invoice</dt>
+                <dd className="font-semibold tabular-nums sm:col-span-2">{invoice.invoiceNumber}</dd>
+                <dt className="mt-2 text-muted-foreground sm:col-span-2">Date</dt>
+                <dd className="mt-2 font-medium sm:col-span-2 sm:mt-0">{formatLongDate(invoice.invoiceDate)}</dd>
+              </dl>
+            </header>
+
+            {/* Customer and payment */}
+            <section className="grid gap-px border-y bg-border sm:grid-cols-2">
+              <div className="bg-card p-4 sm:p-6">
+                <h3 className="text-sm text-muted-foreground">Billed to</h3>
+                <p className="mt-1 font-semibold">{customerName}</p>
+                <div className="mt-2 space-y-1 text-sm text-muted-foreground">
+                  {customer.phone && (
+                    <p className="flex items-center gap-2">
+                      <Phone className="h-3.5 w-3.5 shrink-0" />
+                      {customer.phone}
+                    </p>
+                  )}
+                  {customer.email && (
+                    <p className="flex min-w-0 items-center gap-2">
+                      <Mail className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">{customer.email}</span>
+                    </p>
+                  )}
+                  {customerAddress && (
+                    <p className="flex items-start gap-2">
+                      <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                      {customerAddress}
+                    </p>
+                  )}
+                  {customer.gstNumber && <p>GSTIN {customer.gstNumber}</p>}
+                </div>
+              </div>
+
+              <div className="bg-card p-4 sm:p-6">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="text-sm text-muted-foreground">Payment</h3>
+                  <span className="text-xs text-muted-foreground tabular-nums">{paidShare}% paid</span>
+                </div>
+                <p className="mt-1 text-sm">
+                  <span className="font-semibold tabular-nums">{formatCurrency(received)}</span>
+                  <span className="text-muted-foreground"> received of {formatCurrency(total)}</span>
+                </p>
+                <div
+                  className="mt-3 h-2 overflow-hidden rounded-full bg-muted"
+                  role="progressbar"
+                  aria-label="Share of invoice paid"
+                  aria-valuenow={paidShare}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                >
+                  <div
+                    className={cn(
+                      "h-full rounded-full transition-[width] duration-500",
+                      balance > 0 ? "bg-primary" : "bg-green-600"
+                    )}
+                    style={{ width: `${paidShare}%` }}
+                  />
+                </div>
+
+                {payment.editing ? (
+                  <form
+                    className="mt-4 space-y-2"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      payment.save();
+                    }}
+                  >
+                    <label htmlFor="payment-amount" className="text-sm font-medium">
+                      Amount received now
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      <div className="relative min-w-[140px] flex-1">
+                        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                          ₹
+                        </span>
+                        <Input
+                          id="payment-amount"
+                          type="number"
+                          inputMode="decimal"
+                          min="0"
+                          step="0.01"
+                          value={payment.value}
+                          onChange={(e) => payment.setValue(e.target.value)}
+                          placeholder="0"
+                          className="no-spinner pl-7 text-right tabular-nums"
+                          autoFocus
+                        />
+                      </div>
+                      {balance > 0 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => payment.setValue(String(balance))}
+                        >
+                          Full balance
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      This is added to the {formatCurrency(received)} already received.
+                    </p>
+                    <div className="flex gap-2 pt-1">
+                      <Button type="submit" size="sm" disabled={payment.saving || !payment.value}>
+                        {payment.saving ? "Saving…" : "Record payment"}
+                      </Button>
+                      <Button type="button" size="sm" variant="ghost" onClick={payment.cancel}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                    <div className="text-sm">
+                      <span className="text-muted-foreground">Balance </span>
+                      <span
+                        className={cn(
+                          "font-semibold tabular-nums",
+                          balance > 0 ? "text-destructive" : "text-green-700 dark:text-green-400"
+                        )}
+                      >
+                        {balance > 0 ? formatCurrency(balance) : "Nil"}
+                      </span>
+                    </div>
+                    {!isCancelled && balance > 0 && (
+                      <Button size="sm" variant="outline" onClick={payment.start}>
+                        <Plus className="mr-1 h-4 w-4" />
+                        Record payment
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* Items */}
+            <section>
+              <h3 className="px-4 pb-2 pt-5 text-sm font-semibold sm:px-6">
+                Items <span className="font-normal text-muted-foreground">({items.length})</span>
+              </h3>
+
+              {/* Phone: one card per item */}
+              <ul className="divide-y border-y sm:hidden">
+                {items.map((item, index) => (
+                  <li key={index} className="space-y-2 px-4 py-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-medium">{item.description || `Item ${index + 1}`}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {[item.itemType, item.hsnCode && `HSN ${item.hsnCode}`, `${item.pcs || 1} pc`]
+                            .filter(Boolean)
+                            .join(", ")}
+                        </p>
+                      </div>
+                      <span className="shrink-0 font-semibold tabular-nums">
+                        {formatCurrency(item.amount || 0)}
+                      </span>
+                    </div>
+                    <dl className="grid grid-cols-3 gap-x-3 gap-y-1.5 text-xs tabular-nums">
+                      <div>
+                        <dt className="text-muted-foreground">Gross</dt>
+                        <dd>{weight(item.grossWeight)} g</dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted-foreground">Less</dt>
+                        <dd>{weight(item.lessWeight)}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted-foreground">Net</dt>
+                        <dd className="font-medium">{weight(item.netWeight)} g</dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted-foreground">Rate / 10g</dt>
+                        <dd>{formatCurrency(item.ratePerTenGram || 0)}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted-foreground">Metal</dt>
+                        <dd>{formatCurrency(item.metalAmount || 0)}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted-foreground">Labour</dt>
+                        <dd>{item.labourChargeAmount > 0 ? formatCurrency(item.labourChargeAmount) : "—"}</dd>
+                      </div>
+                    </dl>
+                  </li>
+                ))}
+              </ul>
+
+              {/* Tablet and up: table */}
+              <div className="hidden overflow-x-auto sm:block">
+                <table className="w-full min-w-[720px] border-collapse text-sm tabular-nums">
+                  <thead>
+                    <tr className="border-y bg-muted/50 text-xs text-muted-foreground">
+                      <th className="py-2.5 pl-6 pr-2 text-left font-medium">Item</th>
+                      <th className="px-2 py-2.5 text-left font-medium">HSN</th>
+                      <th className="px-2 py-2.5 text-right font-medium">Pcs</th>
+                      <th className="px-2 py-2.5 text-right font-medium">Gross (g)</th>
+                      <th className="px-2 py-2.5 text-right font-medium">Less (g)</th>
+                      <th className="px-2 py-2.5 text-right font-medium">Net (g)</th>
+                      <th className="px-2 py-2.5 text-right font-medium">Rate / 10g</th>
+                      <th className="px-2 py-2.5 text-right font-medium">Metal</th>
+                      <th className="px-2 py-2.5 text-right font-medium">Labour</th>
+                      <th className="py-2.5 pl-2 pr-6 text-right font-medium">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.map((item, index) => (
+                      <tr key={index} className="border-b">
+                        <td className="py-3 pl-6 pr-2">
+                          <p className="font-medium">{item.description || `Item ${index + 1}`}</p>
+                          {item.itemType && (
+                            <p className="text-xs text-muted-foreground">{item.itemType}</p>
+                          )}
+                        </td>
+                        <td className="px-2 py-3 text-muted-foreground">{item.hsnCode || "—"}</td>
+                        <td className="px-2 py-3 text-right">{item.pcs || 1}</td>
+                        <td className="px-2 py-3 text-right">{weight(item.grossWeight)}</td>
+                        <td className="px-2 py-3 text-right text-muted-foreground">{weight(item.lessWeight)}</td>
+                        <td className="px-2 py-3 text-right font-medium">{weight(item.netWeight)}</td>
+                        <td className="px-2 py-3 text-right">{formatCurrency(item.ratePerTenGram || 0)}</td>
+                        <td className="px-2 py-3 text-right">{formatCurrency(item.metalAmount || 0)}</td>
+                        <td className="px-2 py-3 text-right text-muted-foreground">
+                          {item.labourChargeAmount > 0 ? formatCurrency(item.labourChargeAmount) : "—"}
+                        </td>
+                        <td className="py-3 pl-2 pr-6 text-right font-semibold">
+                          {formatCurrency(item.amount || 0)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  {items.length > 1 && (
+                    <tfoot>
+                      <tr className="bg-muted/40 font-semibold">
+                        <td colSpan={2} className="py-2.5 pl-6 pr-2 text-muted-foreground">Total</td>
+                        <td className="px-2 py-2.5 text-right">{totals.pcs}</td>
+                        <td className="px-2 py-2.5 text-right">{totals.gross.toFixed(3)}</td>
+                        <td />
+                        <td className="px-2 py-2.5 text-right">{totals.net.toFixed(3)}</td>
+                        <td colSpan={3} />
+                        <td className="py-2.5 pl-2 pr-6 text-right">{formatCurrency(invoice.subtotal || 0)}</td>
+                      </tr>
+                    </tfoot>
+                  )}
+                </table>
+              </div>
+            </section>
+
+            {/* Totals */}
+            <section className="grid gap-6 p-4 sm:p-6 md:grid-cols-[minmax(0,1fr)_minmax(280px,340px)]">
+              <div className="order-2 space-y-4 text-sm md:order-1">
+                <div>
+                  <h3 className="text-muted-foreground">Amount in words</h3>
+                  <p className="mt-1 font-medium">Rupees {numberToWords(Math.round(total))}</p>
+                </div>
+                {(invoice.oldGoldWeight > 0 || invoice.oldGoldAmount > 0) && (
+                  <div>
+                    <h3 className="text-muted-foreground">Old gold exchange</h3>
+                    <p className="mt-1">
+                      {invoice.oldGoldWeight > 0 && (
+                        <span className="tabular-nums">{invoice.oldGoldWeight.toFixed(3)} g, </span>
+                      )}
+                      valued at{" "}
+                      <span className="font-medium tabular-nums">
+                        {formatCurrency(invoice.oldGoldAmount || 0)}
+                      </span>
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="order-1 space-y-2 text-sm md:order-2">
+                <SummaryLine label="Subtotal" value={formatCurrency(invoice.subtotal || 0)} />
+                <SummaryLine
+                  label={`CGST (${invoice.cgstRate || 0}%)`}
+                  value={formatCurrency(invoice.cgstAmount || 0)}
+                />
+                <SummaryLine
+                  label={`SGST (${invoice.sgstRate || 0}%)`}
+                  value={formatCurrency(invoice.sgstAmount || 0)}
+                />
+                {invoice.discount > 0 && (
+                  <SummaryLine label="Discount" value={`− ${formatCurrency(invoice.discount)}`} />
+                )}
+                {invoice.oldGoldAmount > 0 && (
+                  <SummaryLine label="Old gold" value={`− ${formatCurrency(invoice.oldGoldAmount)}`} />
+                )}
+                {Math.abs(roundOff) >= 0.01 && (
+                  <SummaryLine
+                    label="Round off"
+                    value={`${roundOff > 0 ? "+" : "−"} ${Math.abs(roundOff).toFixed(2)}`}
+                  />
+                )}
+                <div className="!mt-3 flex items-baseline justify-between gap-4 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3">
+                  <span className="font-medium">Net amount</span>
+                  <span className="text-2xl font-bold tabular-nums">{formatCurrency(total)}</span>
+                </div>
+                <SummaryLine label="Received" value={formatCurrency(received)} className="!mt-3" />
+                <div className="flex items-center justify-between gap-4 border-t pt-2">
+                  <span className="font-medium">Balance</span>
+                  <span
+                    className={cn(
+                      "font-bold tabular-nums",
+                      balance > 0 ? "text-destructive" : "text-green-700 dark:text-green-400"
+                    )}
+                  >
+                    {balance > 0 ? formatCurrency(balance) : "Nil"}
+                  </span>
+                </div>
+              </div>
+            </section>
+          </article>
+        )}
+      </div>
+    </>
   );
 }

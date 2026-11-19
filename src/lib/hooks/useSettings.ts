@@ -41,17 +41,6 @@ export function useUpdateTaxConfig() {
   });
 }
 
-export function useUpdateMetalRates() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: settingsAPI.updateMetalRates,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['settings'] });
-    },
-  });
-}
-
 export function useUpdateProductTypes() {
   const queryClient = useQueryClient();
 

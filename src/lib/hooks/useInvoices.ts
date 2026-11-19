@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { invoiceAPI } from '../api';
 
 export function useInvoices(params?: {
@@ -31,10 +31,11 @@ export function useInvoiceByNumber(invoiceNumber: string) {
   });
 }
 
-export function useDashboardStats() {
+export function useDashboardStats(params?: Record<string, string>) {
   return useQuery({
-    queryKey: ['dashboard', 'stats'],
-    queryFn: () => invoiceAPI.getDashboardStats(),
+    queryKey: params ? ['dashboard', 'stats', params] : ['dashboard', 'stats'],
+    queryFn: () => invoiceAPI.getDashboardStats(params),
+    placeholderData: keepPreviousData,
   });
 }
 

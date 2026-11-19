@@ -31,8 +31,6 @@ export default function SettingsPage() {
     logo: '',
     cgstRate: 0,
     sgstRate: 0,
-    goldRate: 0,
-    silverRate: 0,
     productTypes: []
   };
 
@@ -81,12 +79,12 @@ export default function SettingsPage() {
       ...currentSettings,
       productTypes: [
         ...currentSettings.productTypes,
-        { name: '', ratePerTenGram: 0 }
+        { name: '', ratePerTenGram: 0, hsnCode: '' }
       ]
     });
   };
 
-  const updateProductType = (index: number, field: 'name' | 'ratePerTenGram', value: string | number) => {
+  const updateProductType = (index: number, field: 'name' | 'ratePerTenGram' | 'hsnCode', value: string | number) => {
     const updated = [...currentSettings.productTypes];
     updated[index] = { ...updated[index], [field]: value };
     setLocalSettings({ ...currentSettings, productTypes: updated });
@@ -113,11 +111,10 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="shop" className="space-y-6">
-        <TabsList>
+        <TabsList className="h-auto flex-wrap justify-start">
           <TabsTrigger value="shop" data-testid="tab-shop">Shop Information</TabsTrigger>
           <TabsTrigger value="tax" data-testid="tab-tax">Tax Configuration</TabsTrigger>
-          <TabsTrigger value="rates" data-testid="tab-rates">Metal Rates</TabsTrigger>
-          <TabsTrigger value="products" data-testid="tab-products">Product Types</TabsTrigger>
+          <TabsTrigger value="products" data-testid="tab-products">Products &amp; rates</TabsTrigger>
         </TabsList>
 
         <TabsContent value="shop">
@@ -268,86 +265,101 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="rates">
-          <Card>
-            <CardHeader>
-              <CardTitle>Current Metal Rates</CardTitle>
-              <CardDescription>Update current gold and silver rates per 10 grams</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="goldRate">Gold Rate (per 10g)</Label>
-                  <Input
-                    id="goldRate"
-                    type="number"
-                    value={currentSettings.goldRate}
-                    onChange={(e) => setLocalSettings({ ...currentSettings, goldRate: parseFloat(e.target.value) || 0 })}
-                    data-testid="input-gold-rate"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="silverRate">Silver Rate (per 10g)</Label>
-                  <Input
-                    id="silverRate"
-                    type="number"
-                    value={currentSettings.silverRate}
-                    onChange={(e) => setLocalSettings({ ...currentSettings, silverRate: parseFloat(e.target.value) || 0 })}
-                    data-testid="input-silver-rate"
-                  />
-                </div>
-              </div>
-
-              <Button onClick={handleSave} disabled={updateSettings.isPending} data-testid="button-save-rates">
-                <Save className="mr-2 h-4 w-4" />
-                {updateSettings.isPending ? 'Saving...' : 'Save Changes'}
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
         <TabsContent value="products">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
-              <div>
-                <CardTitle>Product Types</CardTitle>
-                <CardDescription>Manage product types and their rates</CardDescription>
+            <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
+              <div className="space-y-1.5">
+                <CardTitle>Products and rates</CardTitle>
+                <CardDescription>
+                  Picking a type on an invoice fills in its rate and HSN code. Update the
+                  rates here when the market rate changes.
+                </CardDescription>
+                {settingsData?.updatedAt && (
+                  <p className="text-xs text-muted-foreground">
+                    Last saved{" "}
+                    {new Date(settingsData.updatedAt).toLocaleString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                      hour: "numeric",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                )}
               </div>
-              <Button onClick={addProductType} size="sm" data-testid="button-add-product-type">
+              <Button onClick={addProductType} size="sm" className="shrink-0" data-testid="button-add-product-type">
                 <Plus className="h-4 w-4 mr-1" />
-                Add Type
+                Add type
               </Button>
             </CardHeader>
             <CardContent className="space-y-4">
+              {currentSettings.productTypes.length === 0 && (
+                <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                  No product types yet. Add one, such as Gold 22K, with its rate per 10 grams.
+                </p>
+              )}
+
+              {currentSettings.productTypes.length > 0 && (
+                <div className="hidden gap-3 px-1 text-xs font-medium text-muted-foreground sm:grid sm:grid-cols-[minmax(0,1fr)_120px_160px_40px]">
+                  <span>Type name</span>
+                  <span>HSN code</span>
+                  <span className="text-right">Rate per 10g (₹)</span>
+                  <span />
+                </div>
+              )}
+
               {currentSettings.productTypes.map((type: any, index: number) => (
                 <div
                   key={index}
-                  className="flex items-end gap-4"
+                  className="grid grid-cols-2 gap-3 rounded-lg border p-3 sm:grid-cols-[minmax(0,1fr)_120px_160px_40px] sm:items-center sm:border-0 sm:p-0"
                   data-testid={`product-type-${index}`}
                 >
-                  <div className="flex-1 space-y-2">
-                    <Label>Type Name</Label>
+                  <div className="col-span-2 space-y-1 sm:col-span-1">
+                    <Label htmlFor={`pt-name-${index}`} className="text-xs text-muted-foreground sm:sr-only">
+                      Type name
+                    </Label>
                     <Input
+                      id={`pt-name-${index}`}
                       value={type.name}
                       onChange={(e) => updateProductType(index, 'name', e.target.value)}
-                      placeholder="e.g., Gold 24K"
+                      placeholder="e.g. Gold 22K"
                       data-testid={`input-product-name-${index}`}
                     />
                   </div>
-                  <div className="flex-1 space-y-2">
-                    <Label>Rate per 10g (₹)</Label>
+                  <div className="space-y-1">
+                    <Label htmlFor={`pt-hsn-${index}`} className="text-xs text-muted-foreground sm:sr-only">
+                      HSN code
+                    </Label>
                     <Input
+                      id={`pt-hsn-${index}`}
+                      value={type.hsnCode || ''}
+                      onChange={(e) => updateProductType(index, 'hsnCode', e.target.value)}
+                      placeholder="e.g. 7113"
+                      className="tabular-nums"
+                      data-testid={`input-product-hsn-${index}`}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor={`pt-rate-${index}`} className="text-xs text-muted-foreground sm:sr-only">
+                      Rate per 10g (₹)
+                    </Label>
+                    <Input
+                      id={`pt-rate-${index}`}
                       type="number"
-                      value={type.ratePerTenGram}
+                      inputMode="decimal"
+                      min="0"
+                      value={type.ratePerTenGram || ''}
                       onChange={(e) => updateProductType(index, 'ratePerTenGram', parseFloat(e.target.value) || 0)}
+                      placeholder="0"
+                      className="no-spinner text-right tabular-nums"
                       data-testid={`input-product-rate-${index}`}
                     />
                   </div>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="icon"
                     onClick={() => removeProductType(index)}
+                    className="col-span-2 justify-self-end text-muted-foreground hover:text-destructive sm:col-span-1"
+                    aria-label={`Remove ${type.name || 'product type'}`}
                     data-testid={`button-remove-product-${index}`}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -355,9 +367,9 @@ export default function SettingsPage() {
                 </div>
               ))}
 
-              <Button onClick={handleSave} disabled={updateSettings.isPending} className="mt-4" data-testid="button-save-products">
+              <Button onClick={handleSave} disabled={updateSettings.isPending} className="mt-2" data-testid="button-save-products">
                 <Save className="mr-2 h-4 w-4" />
-                {updateSettings.isPending ? 'Saving...' : 'Save Changes'}
+                {updateSettings.isPending ? 'Saving...' : 'Save changes'}
               </Button>
             </CardContent>
           </Card>
