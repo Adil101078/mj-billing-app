@@ -2,6 +2,7 @@ import express, { Application, Request, Response } from "express";
 import cors, { CorsOptions } from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/database";
+import seedAdmin from "./scripts/seedAdmin";
 import authRoutes from "./routes/authRoutes";
 import customerRoutes from "./routes/customerRoutes";
 import invoiceRoutes from "./routes/invoiceRoutes";
@@ -95,6 +96,7 @@ const PORT = process.env.PORT || 3004;
 const startServer = async () => {
   try {
     await connectDB();
+    await seedAdmin().catch((error) => console.error("Admin seeding failed:", error));
 
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);

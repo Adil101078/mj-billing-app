@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import Settings from "../models/Settings";
+import Settings, { DEFAULT_PRODUCT_TYPES } from "../models/Settings";
 
 // Get settings (singleton)
 export const getSettings = async (req: Request, res: Response) => {
@@ -81,29 +81,6 @@ export const updateTaxConfig = async (req: Request, res: Response) => {
   }
 };
 
-// Update metal rates only
-export const updateMetalRates = async (req: Request, res: Response) => {
-  try {
-    const settings = await (Settings as any).getSettings();
-
-    const { goldRate, silverRate } = req.body;
-
-    if (goldRate !== undefined) settings.goldRate = goldRate;
-    if (silverRate !== undefined) settings.silverRate = silverRate;
-
-    await settings.save();
-
-    res.json({
-      message: "Metal rates updated successfully",
-      settings,
-    });
-  } catch (error: any) {
-    res
-      .status(400)
-      .json({ message: "Error updating metal rates", error: error.message });
-  }
-};
-
 // Update product types only
 export const updateProductTypes = async (req: Request, res: Response) => {
   try {
@@ -140,14 +117,7 @@ export const resetSettings = async (req: Request, res: Response) => {
     settings.gstNumber = "";
     settings.cgstRate = 1.5;
     settings.sgstRate = 1.5;
-    settings.goldRate = 65000;
-    settings.silverRate = 75000;
-    settings.productTypes = [
-      { name: "Gold 24K", ratePerTenGram: 65000 },
-      { name: "Gold 22K", ratePerTenGram: 59500 },
-      { name: "Gold 18K", ratePerTenGram: 48750 },
-      { name: "Silver", ratePerTenGram: 75000 },
-    ];
+    settings.productTypes = DEFAULT_PRODUCT_TYPES.map((t) => ({ ...t }));
 
     await settings.save();
 

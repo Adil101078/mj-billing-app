@@ -480,6 +480,31 @@ export const getDashboardStats = async (req: Request, res: Response) => {
     const totalBalance =
       balanceData.length > 0 ? balanceData[0].totalBalance : 0;
 
+    // Today's sales (all of today's invoices, not just the recent few)
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const startOfTomorrow = new Date(startOfToday);
+    startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+
+    const todayData = await Invoice.aggregate([
+      {
+        $match: {
+          invoiceDate: { $gte: startOfToday, $lt: startOfTomorrow },
+          status: { $ne: "cancelled" },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$total" },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const todaySales = todayData.length > 0 ? todayData[0].total : 0;
+    const todayInvoices = todayData.length > 0 ? todayData[0].count : 0;
+
     // Recent invoices
     const recentInvoices = await Invoice.find()
       .sort({ createdAt: -1 })
@@ -510,6 +535,100 @@ export const getDashboardStats = async (req: Request, res: Response) => {
       { $sort: { "_id.year": 1, "_id.month": 1 } },
     ]);
 
+    // Optional date-range filter: ?from=ISO&to=ISO (to is exclusive)
+    // plus a sales trend: ?trendFrom=ISO&trendTo=ISO&groupBy=day|month&tz=+05:30
+    const parseDate = (value: unknown) => {
+      if (typeof value !== "string" || !value) return null;
+      const d = new Date(value);
+      return isNaN(d.getTime()) ? null : d;
+    };
+    const from = parseDate(req.query.from);
+    const to = parseDate(req.query.to);
+    const tz =
+      typeof req.query.tz === "string" && /^[+-]\d{2}:\d{2}$/.test(req.query.tz)
+        ? req.query.tz
+        : "+00:00";
+
+    const summarize = async (start: Date, end: Date) => {
+      const [row] = await Invoice.aggregate([
+        {
+          $match: {
+            invoiceDate: { $gte: start, $lt: end },
+            status: { $ne: "cancelled" },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            sales: { $sum: "$total" },
+            invoices: { $sum: 1 },
+            cashReceived: { $sum: "$cashReceived" },
+            balance: {
+              $sum: {
+                $cond: [{ $gt: ["$balanceAmount", 0] }, "$balanceAmount", 0],
+              },
+            },
+            unpaidInvoices: {
+              $sum: { $cond: [{ $gt: ["$balanceAmount", 0] }, 1, 0] },
+            },
+          },
+        },
+      ]);
+      return {
+        sales: row?.sales || 0,
+        invoices: row?.invoices || 0,
+        cashReceived: row?.cashReceived || 0,
+        balance: row?.balance || 0,
+        unpaidInvoices: row?.unpaidInvoices || 0,
+      };
+    };
+
+    let period = null;
+    let previousPeriod = null;
+    let periodInvoices = null;
+    if (from && to && from < to) {
+      const length = to.getTime() - from.getTime();
+      const prevFrom = new Date(from.getTime() - length);
+      [period, previousPeriod, periodInvoices] = await Promise.all([
+        summarize(from, to),
+        summarize(prevFrom, from),
+        Invoice.find({ invoiceDate: { $gte: from, $lt: to } })
+          .sort({ invoiceDate: -1, createdAt: -1 })
+          .limit(5)
+          .populate("customerId", "name email"),
+      ]);
+    }
+
+    const trendFrom = parseDate(req.query.trendFrom);
+    const trendTo = parseDate(req.query.trendTo);
+    const groupBy = req.query.groupBy === "month" ? "month" : "day";
+    let trend: { key: string; sales: number; invoices: number }[] = [];
+    if (trendFrom && trendTo && trendFrom < trendTo) {
+      const rows = await Invoice.aggregate([
+        {
+          $match: {
+            invoiceDate: { $gte: trendFrom, $lt: trendTo },
+            status: { $ne: "cancelled" },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              $dateToString: {
+                format: groupBy === "month" ? "%Y-%m" : "%Y-%m-%d",
+                date: "$invoiceDate",
+                timezone: tz,
+              },
+            },
+            sales: { $sum: "$total" },
+            invoices: { $sum: 1 },
+          },
+        },
+        { $sort: { _id: 1 } },
+      ]);
+      trend = rows.map((r) => ({ key: r._id, sales: r.sales, invoices: r.invoices }));
+    }
+
     res.json({
       overview: {
         totalInvoices,
@@ -520,9 +639,15 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         totalPending,
         totalCashReceived,
         totalBalance,
+        todaySales,
+        todayInvoices,
       },
       recentInvoices,
       monthlyRevenue,
+      period,
+      previousPeriod,
+      periodInvoices,
+      trend,
     });
   } catch (error) {
     res.status(500).json({ message: "Error fetching dashboard stats", error });

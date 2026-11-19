@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon --watch . --exec tsx index.ts",
-    "start": "tsx scripts/seedAdmin.ts && tsx index.ts",
+    "start": "tsx index.ts",
     "build": "tsc",
     "start:prod": "node ./build/index.js",
     "seed:admin": "tsx scripts/seedAdmin.ts",

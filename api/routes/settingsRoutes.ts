@@ -4,7 +4,6 @@ import {
   updateSettings,
   updateShopInfo,
   updateTaxConfig,
-  updateMetalRates,
   updateProductTypes,
   resetSettings,
 } from '../controllers/settingsController';
@@ -15,7 +14,6 @@ router.get('/', getSettings);
 router.put('/', updateSettings);
 router.put('/shop-info', updateShopInfo);
 router.put('/tax-config', updateTaxConfig);
-router.put('/metal-rates', updateMetalRates);
 router.put('/product-types', updateProductTypes);
 router.post('/reset', resetSettings);
 
